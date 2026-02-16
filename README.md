@@ -2,6 +2,8 @@
 
 **A tiny, elegant framework inspired by The Elm Architecture—no build tools, pure functions, built for humans and LLMs alike.**
 
+[GitHub](https://github.com/roobie/spriggan) | [Live Demo](https://roobie.github.io/spriggan)
+
 ```html
 <script src="https://unpkg.com/spriggan/dist/spriggan.min.js"></script>
 <script>
@@ -149,6 +151,8 @@ import { app, html } from "spriggan";
   </body>
 </html>
 ```
+
+For a more complete example, check out the included task manager demo in `index.html`.
 
 ---
 
@@ -329,6 +333,27 @@ app("#app", {
   },
 });
 ```
+
+---
+
+## Included Demo App
+
+This repository includes a fully functional task manager demo that showcases Spriggan's patterns in a real application. The demo features:
+
+- **Task Management**: Add, toggle completion, and delete tasks with persistent state.
+- **Filtering**: View all, active, or completed tasks.
+- **Stats Display**: Shows item counts and progress.
+- **Dark Theme**: Built with Open Props colors and subtle box-shadows for depth.
+- **Minimal Styling**: Uses classless Pico.css for base styles and Basscss utilities for responsive design.
+- **Debug Mode**: Enabled for time-travel debugging and performance logging.
+- **JSDoc Type Annotations**: Added to `src/spriggan.js` for TypeScript checking without converting to TS.
+- **Comprehensive Tests**: Core logic tests plus extracted DOM tests in `__tests__/spriggan-dom.test.js`.
+
+**Try the demo:**
+- Clone the repo and open `index.html` in your browser.
+- Or visit the [Live Demo](https://roobie.github.io/spriggan).
+
+The demo's code demonstrates TEA architecture, event delegation, effects for persistence, and view functions like `renderTask`, `renderFilters`, and `renderStats`. It's a great starting point for building your own Spriggan apps.
 
 ---
 
@@ -1713,7 +1738,7 @@ Contributions are welcome! Please:
 **Development setup:**
 
 ```bash
-git clone https://github.com/yourusername/spriggan.git
+git clone https://github.com/roobie/spriggan.git
 cd spriggan
 npm install
 npm test
@@ -1757,7 +1782,7 @@ We believe:
 
 ## Credits
 
-**Created by:** [Your Name]
+**Created by:** Roobie
 
 **Inspired by:**
 
