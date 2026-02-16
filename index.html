@@ -15,22 +15,60 @@
       }
 
       .task-item {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
         align-items: center;
         gap: 1rem;
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         border: 1px solid var(--gray-3);
         border-radius: 0.5rem;
         margin: 0.5rem 0;
+        list-style: none;
       }
 
-      .task-item.completed {
-        opacity: 0.6;
+      .task-item .task-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .task-item .task-actions {
+        display: flex;
+        gap: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .task-item:hover .task-actions,
+      .task-item:focus-within .task-actions {
+        opacity: 1;
+      }
+
+      .task-item .task-actions button {
+        margin: 0;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .task-item.completed .task-text {
         text-decoration: line-through;
+        opacity: 0.6;
       }
 
       .task-item.completed .checkbox {
         accent-color: var(--green-5);
+      }
+
+      .task-item.editing .task-actions {
+        opacity: 1;
+      }
+
+      .task-item.editing {
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .task-item.editing input[type="text"] {
+        width: 100%;
       }
 
       .filters {
@@ -402,7 +440,11 @@
         const isEditing = state.editingId === task.id;
 
         return html`
-          <li class="task-item ${task.completed ? "completed" : ""}">
+          <li
+            class="task-item ${task.completed ? "completed" : ""} ${isEditing
+              ? "editing"
+              : ""}"
+          >
             <input
               type="checkbox"
               class="checkbox"
@@ -418,19 +460,22 @@
                     value="${state.editText}"
                     autofocus
                   />
-                  <button data-msg=${{ type: "SaveEdit" }}>Save</button>
-                  <button data-msg=${{ type: "CancelEdit" }}>Cancel</button>
+                  <div class="task-actions">
+                    <button data-msg=${{ type: "SaveEdit" }}>Save</button>
+                    <button data-msg=${{ type: "CancelEdit" }}>Cancel</button>
+                  </div>
                 `
               : html`
-                  <span>${task.text}</span>
-                  <button data-msg=${{ type: "StartEdit", id: task.id }}>
-                    Edit
-                  </button>
+                  <span class="task-text">${task.text}</span>
+                  <div class="task-actions">
+                    <button data-msg=${{ type: "StartEdit", id: task.id }}>
+                      Edit
+                    </button>
+                    <button data-msg=${{ type: "DeleteTask", id: task.id }}>
+                      Delete
+                    </button>
+                  </div>
                 `}
-
-            <button data-msg=${{ type: "DeleteTask", id: task.id }}>
-              Delete
-            </button>
           </li>
         `;
       }
