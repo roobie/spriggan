@@ -10,16 +10,16 @@ run = "uvx python -m http.server"
 run = "bun install"
 
 [tasks.fmt]
-run = "bun run biome format --write"
+run = "bunx biome format --write"
 
 [tasks.test]
-run = "bun run vitest run --reporter verbose"
+run = "bunx vitest run --reporter verbose"
 
 [tasks.lint]
-run = "bun run biome lint"
+run = "bunx biome lint"
 
 [tasks.tidy]
-run = "bun run biome check --write"
+run = "bunx biome check --write"
 depends = [
     "fmt",
     "test",
@@ -27,7 +27,7 @@ depends = [
 ]
 
 [tasks.typecheck]
-run = "bun run tsc --noEmit"
+run = "bunx tsc --noEmit"
 
 [tasks.check]
 depends = [
