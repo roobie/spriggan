@@ -1,4 +1,4 @@
-# Spriggan Robustness & DX Review (src/spriggan.js)
+# Spriggan Robustness & DX Review (src/spriggan.mjs)
 
 ## Strengths
 
@@ -65,7 +65,7 @@ Debug tools are now instance-scoped on the app API (`appApi.debug.history`, `app
 
 ## Test Coverage
 
-Comprehensive test suite with 82 tests covering:
+Comprehensive test suite with 81 tests covering:
 
 - `html` tagged template function (including message object stringify)
 - App initialization and config validation
@@ -94,6 +94,3 @@ Comprehensive test suite with 82 tests covering:
 
 3. **Document XSS / escaping clearly**
    - Add a prominent note that `html()` doesn't escape.
-
-4. **Consider namespacing debug tools per instance**
-   - Store debug tools per-instance rather than on global `window`.

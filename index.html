@@ -73,7 +73,7 @@
 
     <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
     <script type="module">
-      import createSpriggan, { html } from "./src/spriggan.js";
+      import createSpriggan, { html } from "./src/spriggan.mjs";
 
       const { app } = createSpriggan();
 
@@ -282,10 +282,7 @@
 
             <div>
               <button
-                data-msg="${JSON.stringify({ type: "ClearCompleted" }).replace(
-                  /"/g,
-                  "&quot;",
-                )}"
+                data-msg=${{ type: "ClearCompleted" }}
                 ${state.tasks.filter((t) => t.completed).length === 0
                   ? "disabled"
                   : ""}
@@ -305,14 +302,7 @@
           return html`<div class="quote">Error: ${state.error}</div>`;
         if (!state.quote)
           return html`<div class="quote">
-            <button
-              data-msg="${JSON.stringify({ type: "FetchQuote" }).replace(
-                /"/g,
-                "&quot;",
-              )}"
-            >
-              Get Inspiration
-            </button>
+            <button data-msg=${{ type: "FetchQuote" }}>Get Inspiration</button>
           </div>`;
 
         return html`
@@ -320,12 +310,7 @@
             <strong>${state.quote.title}</strong><br />
             ${state.quote.body}
             <br /><small>— JSONPlaceholder Post</small> <br /><small
-              ><button
-                data-msg="${JSON.stringify({ type: "FetchQuote" }).replace(
-                  /"/g,
-                  "&quot;",
-                )}"
-              >
+              ><button data-msg=${{ type: "FetchQuote" }}>
                 New Post
               </button></small
             >
@@ -351,28 +336,19 @@
         return html`
           <div class="filters">
             <button
-              data-msg="${JSON.stringify({
-                type: "SetFilter",
-                filter: "all",
-              }).replace(/"/g, "&quot;")}"
+              data-msg=${{ type: "SetFilter", filter: "all" }}
               class="${state.filter === "all" ? "secondary" : ""}"
             >
               All
             </button>
             <button
-              data-msg="${JSON.stringify({
-                type: "SetFilter",
-                filter: "active",
-              }).replace(/"/g, "&quot;")}"
+              data-msg=${{ type: "SetFilter", filter: "active" }}
               class="${state.filter === "active" ? "secondary" : ""}"
             >
               Active
             </button>
             <button
-              data-msg="${JSON.stringify({
-                type: "SetFilter",
-                filter: "completed",
-              }).replace(/"/g, "&quot;")}"
+              data-msg=${{ type: "SetFilter", filter: "completed" }}
               class="${state.filter === "completed" ? "secondary" : ""}"
             >
               Completed
@@ -383,12 +359,7 @@
 
       function renderAddTask(state, dispatch) {
         return html`
-          <form
-            data-msg="${JSON.stringify({ type: "AddTask" }).replace(
-              /"/g,
-              "&quot;",
-            )}"
-          >
+          <form data-msg=${{ type: "AddTask" }}>
             <input
               type="text"
               placeholder="What needs to be done?"
@@ -428,10 +399,7 @@
             <input
               type="checkbox"
               class="checkbox"
-              data-msg="${JSON.stringify({
-                type: "ToggleTask",
-                id: task.id,
-              }).replace(/"/g, "&quot;")}"
+              data-msg=${{ type: "ToggleTask", id: task.id }}
               ${task.completed ? "checked" : ""}
             />
 
@@ -443,41 +411,17 @@
                     value="${state.editText}"
                     autofocus
                   />
-                  <button
-                    data-msg="${JSON.stringify({ type: "SaveEdit" }).replace(
-                      /"/g,
-                      "&quot;",
-                    )}"
-                  >
-                    Save
-                  </button>
-                  <button
-                    data-msg="${JSON.stringify({ type: "CancelEdit" }).replace(
-                      /"/g,
-                      "&quot;",
-                    )}"
-                  >
-                    Cancel
-                  </button>
+                  <button data-msg=${{ type: "SaveEdit" }}>Save</button>
+                  <button data-msg=${{ type: "CancelEdit" }}>Cancel</button>
                 `
               : html`
                   <span>${task.text}</span>
-                  <button
-                    data-msg="${JSON.stringify({
-                      type: "StartEdit",
-                      id: task.id,
-                    }).replace(/"/g, "&quot;")}"
-                  >
+                  <button data-msg=${{ type: "StartEdit", id: task.id }}>
                     Edit
                   </button>
                 `}
 
-            <button
-              data-msg="${JSON.stringify({
-                type: "DeleteTask",
-                id: task.id,
-              }).replace(/"/g, "&quot;")}"
-            >
+            <button data-msg=${{ type: "DeleteTask", id: task.id }}>
               Delete
             </button>
           </li>
@@ -503,7 +447,7 @@
       // Bootstrap
       // ========================================================================
 
-      app("#app", {
+      window.app = app("#app", {
         init,
         update,
         view,
