@@ -1,4 +1,4 @@
-import createSpriggan from "@src/spriggan.js";
+import createSpriggan from "@src/spriggan";
 
 const { app, html } = createSpriggan();
 
@@ -26,5 +26,6 @@ const demo = app<State, Msg>("#demo", {
   `,
 });
 
-// dispatch on the instance:
-demo.dispatch({ type: "increment" });
+// dispatch is now typed - only accepts Msg
+demo.dispatch({ type: "increment" }); // ✓
+// demo.dispatch({ type: "invalid" });   // ✗ type error

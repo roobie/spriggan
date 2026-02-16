@@ -53,6 +53,7 @@ export default function createSpriggan() {
   let isDebugMode = false;
   let eventListenersAttached = false;
   let boundEventHandlers = null;
+  let debugHistory = [];
 
   /**
    * Initialize a Spriggan application
@@ -90,7 +91,6 @@ export default function createSpriggan() {
 
     if (isDebugMode) {
       console.log("[Spriggan] Initialized with state:", currentState);
-      setupDebugTools();
     }
 
     let cleanupFns = [];
@@ -123,7 +123,26 @@ export default function createSpriggan() {
         effectHandlers = {};
         runEffectFn = null;
         isDebugMode = false;
+        debugHistory = [];
       },
+      ...(isDebugMode && {
+        debug: {
+          history: debugHistory,
+          timeTravel: (index) => {
+            if (debugHistory[index]) {
+              currentState = debugHistory[index].state;
+              render();
+              console.log("[Spriggan] Time traveled to state:", currentState);
+            } else {
+              console.warn(`[Spriggan] No history entry at index ${index}`);
+            }
+          },
+          clearHistory: () => {
+            debugHistory.length = 0;
+            console.log("[Spriggan] History cleared");
+          },
+        },
+      }),
     };
   }
 
@@ -408,13 +427,11 @@ export default function createSpriggan() {
       console.log(`Update took ${(endTime - startTime).toFixed(2)}ms`);
       console.groupEnd();
 
-      if (globalThis.__SPRIGGAN_DEBUG__) {
-        globalThis.__SPRIGGAN_DEBUG__.history.push({
-          msg,
-          state: newState,
-          timestamp: Date.now(),
-        });
-      }
+      debugHistory.push({
+        msg,
+        state: newState,
+        timestamp: Date.now(),
+      });
 
       return result;
     };
@@ -451,36 +468,6 @@ export default function createSpriggan() {
     }
 
     return changes;
-  }
-
-  function setupDebugTools() {
-    globalThis.__SPRIGGAN_DEBUG__ = {
-      getState: () => currentState,
-      dispatch: dispatch,
-      history: [],
-      timeTravel: (index) => {
-        if (globalThis.__SPRIGGAN_DEBUG__.history[index]) {
-          currentState = globalThis.__SPRIGGAN_DEBUG__.history[index].state;
-          render();
-          console.log("[Spriggan] Time traveled to state:", currentState);
-        } else {
-          console.warn(`[Spriggan] No history entry at index ${index}`);
-        }
-      },
-      clearHistory: () => {
-        globalThis.__SPRIGGAN_DEBUG__.history = [];
-        console.log("[Spriggan] History cleared");
-      },
-    };
-
-    console.log(
-      "[Spriggan] Debug tools available at globalThis.__SPRIGGAN_DEBUG__",
-    );
-    console.log("  - __SPRIGGAN_DEBUG__.getState()");
-    console.log("  - __SPRIGGAN_DEBUG__.dispatch(msg)");
-    console.log("  - __SPRIGGAN_DEBUG__.history");
-    console.log("  - __SPRIGGAN_DEBUG__.timeTravel(index)");
-    console.log("  - __SPRIGGAN_DEBUG__.clearHistory()");
   }
 
   return { app, html };

@@ -114,6 +114,27 @@ interface AppApi<T, M extends Message = Message> {
 
   /** Destroy the app and clean up resources */
   destroy: () => void;
+
+  /** Debug tools (only present when debug: true) */
+  debug?: DebugTools<T, M>;
+}
+
+/**
+ * Debug tools available on app instance when debug mode is enabled
+ */
+interface DebugTools<T, M extends Message = Message> {
+  /** History of state changes */
+  history: Array<{
+    msg: M;
+    state: T;
+    timestamp: number;
+  }>;
+
+  /** Travel to a specific history entry */
+  timeTravel: (index: number) => void;
+
+  /** Clear all history */
+  clearHistory: () => void;
 }
 
 /**
@@ -205,35 +226,3 @@ type BuiltInEffect<M extends Message = Message> =
   | DelayEffect<M>
   | StorageEffect
   | FnEffect;
-
-// ============================================================================
-// Debug Tools
-// ============================================================================
-
-/**
- * Debug tools available on globalThis.__SPRIGGAN_DEBUG__ when debug mode is enabled
- */
-interface SprigganDebugTools<T, M extends Message = Message> {
-  /** Get current state */
-  getState: () => T;
-
-  /** Dispatch a message */
-  dispatch: Dispatch<M>;
-
-  /** History of state changes */
-  history: Array<{
-    msg: M;
-    state: T;
-    timestamp: number;
-  }>;
-
-  /** Travel to a specific history entry */
-  timeTravel: (index: number) => void;
-
-  /** Clear all history */
-  clearHistory: () => void;
-}
-
-declare global {
-  var __SPRIGGAN_DEBUG__: SprigganDebugTools<unknown, Message> | undefined;
-}

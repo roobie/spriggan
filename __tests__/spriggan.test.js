@@ -19,11 +19,7 @@ global.console = {
   groupEnd: vi.fn(),
 };
 
-import SprigganClosure from "../src/spriggan.js";
-
-function createSpriggan() {
-  return SprigganClosure();
-}
+import createSpriggan from "../src/spriggan";
 
 describe("Spriggan Framework", () => {
   let Spriggan;
@@ -39,7 +35,6 @@ describe("Spriggan Framework", () => {
     console.error.mockReset();
     console.group.mockReset();
     console.groupEnd.mockReset();
-    delete global.window.__SPRIGGAN_DEBUG__;
 
     Spriggan = createSpriggan();
   });
@@ -557,9 +552,7 @@ describe("Spriggan Framework", () => {
       vi.advanceTimersByTime(10);
       appApi.dispatch({ type: "Increment" });
 
-      if (global.window.__SPRIGGAN_DEBUG__) {
-        expect(global.window.__SPRIGGAN_DEBUG__.history).toHaveLength(2);
-      }
+      expect(appApi.debug.history).toHaveLength(2);
     });
 
     it("should provide timeTravel functionality", () => {
@@ -578,28 +571,24 @@ describe("Spriggan Framework", () => {
 
       expect(appApi.getState()).toEqual({ count: 3 });
 
-      if (global.window.__SPRIGGAN_DEBUG__) {
-        global.window.__SPRIGGAN_DEBUG__.timeTravel(0);
-        expect(appApi.getState()).toEqual({ count: 1 });
-      }
+      appApi.debug.timeTravel(0);
+      expect(appApi.getState()).toEqual({ count: 1 });
     });
 
     it("should warn on invalid timeTravel index", () => {
       document.body.innerHTML = '<div id="app"></div>';
 
-      Spriggan.app("#app", {
+      const appApi = Spriggan.app("#app", {
         init: () => ({ count: 0 }),
         update: (state) => state,
         view: () => "",
         debug: true,
       });
 
-      if (global.window.__SPRIGGAN_DEBUG__) {
-        global.window.__SPRIGGAN_DEBUG__.timeTravel(999);
-        expect(console.warn).toHaveBeenCalledWith(
-          "[Spriggan] No history entry at index 999",
-        );
-      }
+      appApi.debug.timeTravel(999);
+      expect(console.warn).toHaveBeenCalledWith(
+        "[Spriggan] No history entry at index 999",
+      );
     });
 
     it("should clear history with clearHistory", () => {
@@ -615,37 +604,9 @@ describe("Spriggan Framework", () => {
       appApi.dispatch({ type: "Increment" });
       appApi.dispatch({ type: "Increment" });
 
-      if (global.window.__SPRIGGAN_DEBUG__) {
-        expect(global.window.__SPRIGGAN_DEBUG__.history).toHaveLength(2);
-        global.window.__SPRIGGAN_DEBUG__.clearHistory();
-        expect(global.window.__SPRIGGAN_DEBUG__.history).toHaveLength(0);
-      }
-    });
-
-    it("should provide getState and dispatch via debug tools", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      Spriggan.app("#app", {
-        init: () => ({ count: 0 }),
-        update: (state, msg) => {
-          if (msg.type === "Increment") {
-            return { count: state.count + 1 };
-          }
-          return state;
-        },
-        view: () => "",
-        debug: true,
-      });
-
-      if (global.window.__SPRIGGAN_DEBUG__) {
-        expect(global.window.__SPRIGGAN_DEBUG__.getState()).toEqual({
-          count: 0,
-        });
-        global.window.__SPRIGGAN_DEBUG__.dispatch({ type: "Increment" });
-        expect(global.window.__SPRIGGAN_DEBUG__.getState()).toEqual({
-          count: 1,
-        });
-      }
+      expect(appApi.debug.history).toHaveLength(2);
+      appApi.debug.clearHistory();
+      expect(appApi.debug.history).toHaveLength(0);
     });
   });
 

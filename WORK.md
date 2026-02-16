@@ -59,15 +59,15 @@ Only subscriptions provide cleanup; components with their own listeners must man
 
 Effect types are simple but typo-prone; malformed effect objects are not validated.
 
-### 4) ~~Debug tools are global~~ ✅ MITIGATED
+### 4) ~~Debug tools are global~~ ✅ FIXED
 
-`window.__SPRIGGAN_DEBUG__` could still collide, but multiple apps now have isolated state via closures. Each debug-enabled app resets the global debug tools.
+Debug tools are now instance-scoped on the app API (`appApi.debug.history`, `appApi.debug.timeTravel()`, `appApi.debug.clearHistory()`). Only present when `debug: true` is set.
 
 ## Test Coverage
 
-Comprehensive test suite with 63 tests covering:
+Comprehensive test suite with 82 tests covering:
 
-- `html` tagged template function
+- `html` tagged template function (including message object stringify)
 - App initialization and config validation
 - Dispatch and state updates
 - All effect types (http, delay, storage, fn)
@@ -77,6 +77,12 @@ Comprehensive test suite with 63 tests covering:
 - `destroy()` cleanup (DOM, state, event listeners, subscriptions)
 - Multiple instances via closure factory
 - Edge cases (undefined/null state, non-object state in debug)
+
+**Property-based tests** (fast-check):
+
+- `html` function with arbitrary strings, numbers, arrays, messages
+- State transitions with random messages
+- Effect handling with random effect types
 
 ## Remaining Improvements
 
