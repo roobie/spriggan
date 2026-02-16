@@ -260,7 +260,7 @@ export default function createSpriggan() {
         const target = /** @type {HTMLElement | null} */ (
           /** @type {Element} */ (e.target).closest("[data-msg]")
         );
-        if (target && target.dataset.msg) {
+        if (target?.dataset.msg) {
           try {
             const msg = JSON.parse(target.dataset.msg);
             dispatch(msg);
@@ -272,7 +272,7 @@ export default function createSpriggan() {
 
       input: /** @param {Event} e */ (e) => {
         const el = /** @type {HTMLInputElement} */ (e.target);
-        if (el.dataset && el.dataset.model) {
+        if (el?.dataset.model) {
           dispatch({
             type: "FieldChanged",
             field: el.dataset.model,
@@ -283,7 +283,7 @@ export default function createSpriggan() {
 
       change: /** @param {Event} e */ (e) => {
         const el = /** @type {HTMLInputElement} */ (e.target);
-        if (el.dataset && el.dataset.model) {
+        if (el?.dataset.model) {
           const value = el.type === "checkbox" ? el.checked : el.value;
 
           dispatch({
@@ -298,7 +298,7 @@ export default function createSpriggan() {
         const target = /** @type {HTMLElement | null} */ (
           /** @type {Element} */ (e.target).closest("[data-msg]")
         );
-        if (target && target.dataset.msg) {
+        if (target?.dataset.msg) {
           e.preventDefault();
           try {
             const msg = JSON.parse(target.dataset.msg);
@@ -451,9 +451,12 @@ export default function createSpriggan() {
         return;
       }
 
-      setTimeout(() => {
-        dispatch(/** @type {Message} */ (msg));
-      }, /** @type {number} */ (ms));
+      setTimeout(
+        () => {
+          dispatch(/** @type {Message} */ (msg));
+        },
+        /** @type {number} */ (ms),
+      );
     },
 
     storage: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (

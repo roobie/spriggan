@@ -10,7 +10,7 @@ const converter = new showdown.Converter();
 
 /**
  * @typedef {{
- *   tasks: { id: number; text: string; completed: boolean; created: number }[];
+ *   tasks: Task[];
  *   filter: "all" | "active" | "completed";
  *   newTaskText: string;
  *   editingId: number | null;
@@ -20,8 +20,11 @@ const converter = new showdown.Converter();
  *   error: string | null;
  *   nextId: number;
  * }} State
- * @returns {State}
  */
+
+/** @typedef {{ id: number; text: string; completed: boolean; created: number }} Task */
+
+/** @returns {State} */
 const init = () => ({
   tasks: [],
   filter: "all", // 'all', 'active', 'completed'
@@ -78,10 +81,17 @@ const init = () => ({
  * } | {
  *  type: "QuoteError";
  *  error: string;
+ * } | {
+ *  type: "ClearCompleted";
  * }} Msg
+ */
+
+/** @typedef {{type: string, [key: string]: unknown}} Effect */
+
+/**
  * @param {State} state
  * @param {Msg} msg
- * @returns
+ * @returns {State | [State, ...Effect[]]}
  */
 function update(state, msg) {
   switch (msg.type) {
@@ -95,86 +105,83 @@ function update(state, msg) {
           return state;
       }
 
-    case "AddTask":
+    case "AddTask": {
       if (!state.newTaskText.trim()) return state;
+      const newTask = {
+        id: state.nextId,
+        text: state.newTaskText.trim(),
+        completed: false,
+        created: Date.now(),
+      };
       return [
         {
           ...state,
-          tasks: [
-            ...state.tasks,
-            {
-              id: state.nextId,
-              text: state.newTaskText.trim(),
-              completed: false,
-              created: Date.now(),
-            },
-          ],
+          tasks: [newTask, ...state.tasks],
           newTaskText: "",
           nextId: state.nextId + 1,
         },
-        {
+        /** @type {Effect} */ ({
           type: "storage",
           action: "set",
           key: "tasks",
-          value: [
-            ...state.tasks,
-            {
-              id: state.nextId,
-              text: state.newTaskText.trim(),
-              completed: false,
-              created: Date.now(),
-            },
-          ],
-        },
+          value: [...state.tasks, newTask],
+        }),
       ];
-
+    }
     case "ToggleTask": {
-      const updatedTasks = state.tasks.map((task) =>
-        task.id === msg.id ? { ...task, completed: !task.completed } : task,
+      const updatedTasks = state.tasks.map(
+        (
+          /** @type {{id: number, completed: boolean, text: string, created: number}} */ task,
+        ) =>
+          task.id === msg.id ? { ...task, completed: !task.completed } : task,
       );
       return [
         {
           ...state,
           tasks: updatedTasks,
         },
-        {
+        /** @type {Effect} */ ({
           type: "storage",
           action: "set",
           key: "tasks",
           value: updatedTasks,
-        },
+        }),
       ];
     }
 
     case "DeleteTask": {
-      const filteredTasks = state.tasks.filter((task) => task.id !== msg.id);
+      const filteredTasks = state.tasks.filter(
+        (/** @type {{id: number}} */ task) => task.id !== msg.id,
+      );
       return [
         {
           ...state,
           tasks: filteredTasks,
         },
-        {
+        /** @type {Effect} */ ({
           type: "storage",
           action: "set",
           key: "tasks",
           value: filteredTasks,
-        },
+        }),
       ];
     }
 
     case "StartEdit": {
-      const taskToEdit = state.tasks.find((t) => t.id === msg.id);
+      const taskToEdit = state.tasks.find(
+        (/** @type {{id: number}} */ t) => t.id === msg.id,
+      );
       return [
         {
           ...state,
           editingId: msg.id,
           editText: taskToEdit ? taskToEdit.text : "",
         },
-        {
+        /** @type {Effect} */ ({
           type: "dom",
           action: "focus",
           selector: '.modal-content input[data-model="editText"]',
-        },
+        }),
       ];
     }
 
@@ -184,7 +191,7 @@ function update(state, msg) {
     case "SaveEdit": {
       if (!state.editText.trim() || state.editingId === null)
         return { ...state, editingId: null, editText: "" };
-      const editedTasks = state.tasks.map((task) =>
+      const editedTasks = state.tasks.map((/** @type {Task} */ task) =>
         task.id === state.editingId
           ? { ...task, text: state.editText.trim() }
           : task,
@@ -196,12 +203,12 @@ function update(state, msg) {
           editingId: null,
           editText: "",
         },
-        {
+        /** @type {Effect} */ ({
           type: "storage",
           action: "set",
           key: "tasks",
           value: editedTasks,
-        },
+        }),
       ];
     }
 
@@ -218,18 +225,22 @@ function update(state, msg) {
       return {
         ...state,
         tasks: msg.tasks || [],
-        nextId: Math.max(...(msg.tasks || []).map((t) => t.id), 0) + 1,
+        nextId:
+          Math.max(
+            ...(msg.tasks || []).map((/** @type {{id: number}} */ t) => t.id),
+            0,
+          ) + 1,
       };
 
     case "FetchQuote":
       return [
         { ...state, loading: true, error: null },
-        {
+        /** @type {Effect} */ ({
           type: "http",
           url: "./examples/message-debug.md",
           onSuccess: "QuoteFetched",
           onError: "QuoteError",
-        },
+        }),
       ];
 
     case "QuoteFetched":
@@ -239,18 +250,20 @@ function update(state, msg) {
       return { ...state, error: msg.error, loading: false };
 
     case "ClearCompleted": {
-      const activeTasks = state.tasks.filter((task) => !task.completed);
+      const activeTasks = state.tasks.filter(
+        (/** @type {{completed: boolean}} */ task) => !task.completed,
+      );
       return [
         {
           ...state,
           tasks: activeTasks,
         },
-        {
+        /** @type {Effect} */ ({
           type: "storage",
           action: "set",
           key: "tasks",
           value: activeTasks,
-        },
+        }),
       ];
     }
 
@@ -263,13 +276,16 @@ function update(state, msg) {
 // View
 // ========================================================================
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} dispatch
+ * @returns {string}
+ */
 function view(state, dispatch) {
   const filteredTasks = getFilteredTasks(state);
 
   return html`
     <div>
-      <h1>Task Manager</h1>
-
       ${renderQuote(state, dispatch)} ${renderStats(state)}
       ${renderFilters(state, dispatch)} ${renderAddTask(state, dispatch)}
       ${renderTaskList(filteredTasks, state, dispatch)}
@@ -278,17 +294,31 @@ function view(state, dispatch) {
       <div>
         <button
           data-msg=${{ type: "ClearCompleted" }}
-          ${state.tasks.filter((t) => t.completed).length === 0
-            ? "disabled"
-            : ""}
+          ${
+            state.tasks.filter(
+              (/** @type {{completed: boolean}} */ t) => t.completed,
+            ).length === 0
+              ? "disabled"
+              : ""
+          }
         >
-          Clear Completed (${state.tasks.filter((t) => t.completed).length})
+          Clear Completed
+          (${
+            state.tasks.filter(
+              (/** @type {{completed: boolean}} */ t) => t.completed,
+            ).length
+          })
         </button>
       </div>
     </div>
   `;
 }
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderQuote(state, _dispatch) {
   if (state.loading)
     return html`<div class="quote bg-gray p2 rounded my2 italic">
@@ -313,9 +343,15 @@ function renderQuote(state, _dispatch) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @returns {string}
+ */
 function renderStats(state) {
   const total = state.tasks.length;
-  const active = state.tasks.filter((t) => !t.completed).length;
+  const active = state.tasks.filter(
+    (/** @type {{completed: boolean}} */ t) => !t.completed,
+  ).length;
   const completed = total - active;
 
   return html`
@@ -333,6 +369,11 @@ function renderStats(state) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderFilters(state, _dispatch) {
   return html`
     <div class="filters flex mx2 my2">
@@ -358,6 +399,11 @@ function renderFilters(state, _dispatch) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderAddTask(state, _dispatch) {
   return html`
     <form data-msg=${{ type: "AddTask" }}>
@@ -375,6 +421,12 @@ function renderAddTask(state, _dispatch) {
   `;
 }
 
+/**
+ * @param {State["tasks"]} tasks
+ * @param {State} state
+ * @param {(msg: Msg) => void} dispatch
+ * @returns {string}
+ */
 function renderTaskList(tasks, state, dispatch) {
   if (tasks.length === 0) {
     return html`<p>
@@ -384,19 +436,27 @@ function renderTaskList(tasks, state, dispatch) {
 
   return html`
     <ul>
-      ${tasks.map((task) => renderTask(task, state, dispatch))}
+      ${tasks.map((/** @type {Task} */ task) =>
+        renderTask(task, state, dispatch),
+      )}
     </ul>
   `;
 }
 
+/**
+ * @param {Task} task
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderTask(task, state, _dispatch) {
   const _isEditing = state.editingId === task.id;
 
   return html`
     <li
-      class="task-item ${task.completed
-        ? "completed"
-        : ""} items-center p1 border rounded my1 list-style-none"
+      class="task-item ${
+        task.completed ? "completed" : ""
+      } items-center p1 border rounded my1 list-style-none"
     >
       <input
         type="checkbox"
@@ -414,10 +474,16 @@ function renderTask(task, state, _dispatch) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @returns {string}
+ */
 function renderEditModal(state) {
   if (state.editingId === null) return "";
 
-  const task = state.tasks.find((t) => t.id === state.editingId);
+  const task = state.tasks.find(
+    (/** @type {Task} */ t) => t.id === state.editingId,
+  );
   if (!task) return "";
 
   return html`
@@ -451,12 +517,20 @@ function renderEditModal(state) {
 // Utilities
 // ========================================================================
 
+/**
+ * @param {State} state
+ * @returns {State["tasks"]}
+ */
 function getFilteredTasks(state) {
   switch (state.filter) {
     case "active":
-      return state.tasks.filter((task) => !task.completed);
+      return state.tasks.filter(
+        (/** @type {{completed: boolean}} */ task) => !task.completed,
+      );
     case "completed":
-      return state.tasks.filter((task) => task.completed);
+      return state.tasks.filter(
+        (/** @type {{completed: boolean}} */ task) => task.completed,
+      );
     default:
       return state.tasks;
   }
@@ -466,7 +540,10 @@ function getFilteredTasks(state) {
 // Bootstrap
 // ========================================================================
 
-window.app = app("#app", {
+/** @type {Window & {app?: unknown}} */
+const w = /** @type {*} */ (window);
+
+w.app = app("#app", {
   init,
   update,
   view,
@@ -485,26 +562,17 @@ window.app = app("#app", {
     };
     loadTasks();
 
-    // Focus modal input when modal opens
-    const focusModalInput = () => {
-      const input = document.querySelector(
-        '.modal-content input[data-model="editText"]',
-      );
-      if (input) input.focus();
-    };
-    const observer = new MutationObserver(focusModalInput);
-    observer.observe(document.getElementById("app"), {
-      childList: true,
-      subtree: true,
-    });
-
     // Keyboard shortcuts
+    /** @param {KeyboardEvent} e */
     const handleKeydown = (e) => {
-      if (e.target.tagName === "INPUT") return; // Don't interfere with input
+      if (/** @type {HTMLElement} */ (e.target).tagName === "INPUT") return; // Don't interfere with input
 
       if (e.key === "n" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        document.querySelector('input[data-model="newTaskText"]').focus();
+        const input = /** @type {HTMLInputElement | null} */ (
+          document.querySelector('input[data-model="newTaskText"]')
+        );
+        if (input) input.focus();
       }
     };
 
@@ -513,7 +581,6 @@ window.app = app("#app", {
     // Cleanup
     return () => {
       document.removeEventListener("keydown", handleKeydown);
-      observer.disconnect();
     };
   },
 });

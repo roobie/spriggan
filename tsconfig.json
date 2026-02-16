@@ -2,7 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "paths": {
-      "@src/*": ["./src/*"],
+      "@src/*": ["./src/*"]
     },
     "allowJs": true, // Allow JS files
     "checkJs": true, // Type-check JS files
@@ -46,8 +46,8 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "examples/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }
