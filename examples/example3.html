@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spriggan Multi Example</title>
+    <!-- centered viewport -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
+    />
+    <style>
+      @import "https://unpkg.com/open-props";
+    </style>
+  </head>
+  <body>
+    <header>Welcome to 🌿 Spriggan</header>
+    <main id="app"></main>
+    <footer>A simple framework.</footer>
+
+    <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
+    <script src="../src/spriggan.js"></script>
+
+    <script>
+      const { app, html } = Spriggan;
+
+      // ========================================================================
+      // Model
+      // ========================================================================
+
+      const init = {
+        error: null,
+        coords: { x: 0, y: 0 },
+      };
+
+      // ========================================================================
+      // Update
+      // ========================================================================
+
+      function update(state, msg) {
+        switch (msg.type) {
+          case "MouseMoved":
+            return [{ ...state, coords: msg.coords, error: null }];
+
+          default:
+            return state;
+        }
+      }
+
+      // ========================================================================
+      // View
+      // ========================================================================
+
+      function view(state, dispatch) {
+        return html`
+          <div>
+            <h1>Demo</h1>
+
+            <div>${renderCoords(state)}</div>
+          </div>
+        `;
+      }
+
+      function renderCoords(state) {
+        return html`
+          <span>${state.coords.x}</span> |
+          <span>${state.coords.y}</span>
+        `;
+      }
+
+      // ========================================================================
+      // Bootstrap
+      // ========================================================================
+
+      app("#app", {
+        init,
+        update,
+        view,
+        debug: false,
+        subscriptions: (dispatch) => {
+          // Auto-save on keyboard shortcut
+          const handleMousemove = (e) => {
+            dispatch({
+              type: "MouseMoved",
+              coords: { x: e.clientX, y: e.clientY },
+            });
+          };
+
+          document.addEventListener("mousemove", handleMousemove);
+
+          // Cleanup
+          return () => {
+            document.removeEventListener("mousemove", handleMousemove);
+          };
+        },
+      });
+    </script>
+  </body>
+</html>

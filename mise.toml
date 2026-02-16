@@ -2,6 +2,10 @@
 bun = "1.3"
 watchexec = "2"
 
+[tasks.serve]
+depends = "tidy"
+run = "uvx python -m http.server"
+
 [tasks.fmt]
 run = "bunx prettier . -w"
 
