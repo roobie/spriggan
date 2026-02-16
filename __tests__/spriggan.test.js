@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-// Mock fetch globally
 global.fetch = vi.fn();
 
-// Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -12,7 +10,6 @@ const localStorageMock = {
 };
 global.localStorage = localStorageMock;
 
-// Mock console methods
 global.console = {
   log: vi.fn(),
   warn: vi.fn(),
@@ -21,28 +18,29 @@ global.console = {
   groupEnd: vi.fn(),
 };
 
-// Import Spriggan after mocks
-import Spriggan from "../src/spriggan.js";
+import SprigganClosure from "../src/spriggan.js";
+
+function createSpriggan() {
+  return SprigganClosure();
+}
 
 describe("Spriggan Framework", () => {
+  let Spriggan;
+
   beforeEach(() => {
-    // Reset DOM
     document.body.innerHTML = "";
-
-    // Reset mocks
     vi.clearAllMocks();
-
-    // Reset localStorage mocks
     localStorageMock.getItem.mockReset();
     localStorageMock.setItem.mockReset();
     localStorageMock.removeItem.mockReset();
-
-    // Reset console mocks
     console.log.mockReset();
     console.warn.mockReset();
     console.error.mockReset();
     console.group.mockReset();
     console.groupEnd.mockReset();
+    delete global.window.__SPRIGGAN_DEBUG__;
+
+    Spriggan = createSpriggan();
   });
 
   describe("html function", () => {
@@ -527,13 +525,951 @@ describe("Spriggan Framework", () => {
       });
 
       appApi.dispatch({ type: "Increment" });
-      vi.advanceTimersByTime(10); // Mock timestamp
+      vi.advanceTimersByTime(10);
       appApi.dispatch({ type: "Increment" });
 
-      // Access debug tools (assuming they exist on window)
       if (global.window.__SPRIGGAN_DEBUG__) {
         expect(global.window.__SPRIGGAN_DEBUG__.history).toHaveLength(2);
       }
+    });
+
+    it("should provide timeTravel functionality", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => ({ count: state.count + 1 }),
+        view: () => "",
+        debug: true,
+      });
+
+      appApi.dispatch({ type: "Increment" });
+      appApi.dispatch({ type: "Increment" });
+      appApi.dispatch({ type: "Increment" });
+
+      expect(appApi.getState()).toEqual({ count: 3 });
+
+      if (global.window.__SPRIGGAN_DEBUG__) {
+        global.window.__SPRIGGAN_DEBUG__.timeTravel(0);
+        expect(appApi.getState()).toEqual({ count: 1 });
+      }
+    });
+
+    it("should warn on invalid timeTravel index", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state) => state,
+        view: () => "",
+        debug: true,
+      });
+
+      if (global.window.__SPRIGGAN_DEBUG__) {
+        global.window.__SPRIGGAN_DEBUG__.timeTravel(999);
+        expect(console.warn).toHaveBeenCalledWith(
+          "[Spriggan] No history entry at index 999",
+        );
+      }
+    });
+
+    it("should clear history with clearHistory", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => ({ count: state.count + 1 }),
+        view: () => "",
+        debug: true,
+      });
+
+      appApi.dispatch({ type: "Increment" });
+      appApi.dispatch({ type: "Increment" });
+
+      if (global.window.__SPRIGGAN_DEBUG__) {
+        expect(global.window.__SPRIGGAN_DEBUG__.history).toHaveLength(2);
+        global.window.__SPRIGGAN_DEBUG__.clearHistory();
+        expect(global.window.__SPRIGGAN_DEBUG__.history).toHaveLength(0);
+      }
+    });
+
+    it("should provide getState and dispatch via debug tools", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Increment") {
+            return { count: state.count + 1 };
+          }
+          return state;
+        },
+        view: () => "",
+        debug: true,
+      });
+
+      if (global.window.__SPRIGGAN_DEBUG__) {
+        expect(global.window.__SPRIGGAN_DEBUG__.getState()).toEqual({
+          count: 0,
+        });
+        global.window.__SPRIGGAN_DEBUG__.dispatch({ type: "Increment" });
+        expect(global.window.__SPRIGGAN_DEBUG__.getState()).toEqual({
+          count: 1,
+        });
+      }
+    });
+  });
+
+  describe("destroy() and cleanup", () => {
+    it("should clear DOM content on destroy", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state) => state,
+        view: () => "<div>Content</div>",
+      });
+
+      expect(document.querySelector("#app").innerHTML).toBe(
+        "<div>Content</div>",
+      );
+
+      appApi.destroy();
+      expect(document.querySelector("#app").innerHTML).toBe("");
+    });
+
+    it("should reset state to null after destroy", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state) => state,
+        view: () => "",
+      });
+
+      expect(appApi.getState()).toEqual({ count: 0 });
+      appApi.destroy();
+      expect(appApi.getState()).toBeNull();
+    });
+
+    it("should allow re-mounting after destroy without duplicate dispatches", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      let dispatchCount = 0;
+
+      const app1 = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Inc") {
+            dispatchCount++;
+            return { count: state.count + 1 };
+          }
+          return state;
+        },
+        view: (state) =>
+          `<button data-msg='{"type":"Inc"}'>${state.count}</button>`,
+      });
+
+      const button = document.querySelector("#app button");
+      button.click();
+      expect(dispatchCount).toBe(1);
+
+      app1.destroy();
+
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const app2 = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Inc") {
+            dispatchCount++;
+            return { count: state.count + 1 };
+          }
+          return state;
+        },
+        view: (state) =>
+          `<button data-msg='{"type":"Inc"}'>${state.count}</button>`,
+      });
+
+      const button2 = document.querySelector("#app button");
+      button2.click();
+      expect(dispatchCount).toBe(2);
+    });
+
+    it("should call subscription cleanup functions on destroy", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const cleanupFn = vi.fn();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state) => state,
+        view: () => "",
+        subscriptions: () => cleanupFn,
+      });
+
+      appApi.destroy();
+      expect(cleanupFn).toHaveBeenCalled();
+    });
+
+    it("should handle array of cleanup functions", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const cleanup1 = vi.fn();
+      const cleanup2 = vi.fn();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state) => state,
+        view: () => "",
+        subscriptions: () => [cleanup1, cleanup2],
+      });
+
+      appApi.destroy();
+      expect(cleanup1).toHaveBeenCalled();
+      expect(cleanup2).toHaveBeenCalled();
+    });
+  });
+
+  describe("DOM event delegation", () => {
+    it("should handle click events on elements with data-msg", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ clicked: false }),
+        update: (state, msg) => {
+          if (msg.type === "Click") {
+            return { clicked: true };
+          }
+          return state;
+        },
+        view: () => '<button data-msg=\'{"type":"Click"}\'>Click</button>',
+      });
+
+      const button = document.querySelector("#app button");
+      button.click();
+
+      expect(appApi.getState()).toEqual({ clicked: true });
+    });
+
+    it("should handle click events on nested elements via closest()", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ clicked: false }),
+        update: (state, msg) => {
+          if (msg.type === "Click") {
+            return { clicked: true };
+          }
+          return state;
+        },
+        view: () =>
+          '<button data-msg=\'{"type":"Click"}\'><span>Inner</span></button>',
+      });
+
+      const span = document.querySelector("#app span");
+      span.click();
+
+      expect(appApi.getState()).toEqual({ clicked: true });
+    });
+
+    it("should handle input events with data-model", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ text: "" }),
+        update: (state, msg) => {
+          if (msg.type === "FieldChanged" && msg.field === "text") {
+            return { text: msg.value };
+          }
+          return state;
+        },
+        view: () => '<input data-model="text" />',
+      });
+
+      const input = document.querySelector("#app input");
+      input.value = "hello";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+
+      expect(appApi.getState()).toEqual({ text: "hello" });
+    });
+
+    it("should handle change events for checkboxes", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ checked: false }),
+        update: (state, msg) => {
+          if (msg.type === "FieldChanged" && msg.field === "agree") {
+            return { checked: msg.value };
+          }
+          return state;
+        },
+        view: () => '<input type="checkbox" data-model="agree" />',
+      });
+
+      const checkbox = document.querySelector("#app input");
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+
+      expect(appApi.getState()).toEqual({ checked: true });
+    });
+
+    it("should handle change events for select elements", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ choice: "" }),
+        update: (state, msg) => {
+          if (msg.type === "FieldChanged" && msg.field === "choice") {
+            return { choice: msg.value };
+          }
+          return state;
+        },
+        view: () => `
+          <select data-model="choice">
+            <option value="">Select</option>
+            <option value="a">A</option>
+            <option value="b">B</option>
+          </select>
+        `,
+      });
+
+      const select = document.querySelector("#app select");
+      select.value = "b";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+
+      expect(appApi.getState()).toEqual({ choice: "b" });
+    });
+
+    it("should handle submit events and prevent default", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ submitted: false }),
+        update: (state, msg) => {
+          if (msg.type === "Submit") {
+            return { submitted: true };
+          }
+          return state;
+        },
+        view: () =>
+          '<form data-msg=\'{"type":"Submit"}\'><button type="submit">Go</button></form>',
+      });
+
+      const form = document.querySelector("#app form");
+      const event = new Event("submit", { bubbles: true, cancelable: true });
+      form.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(appApi.getState()).toEqual({ submitted: true });
+    });
+
+    it("should handle malformed data-msg JSON gracefully", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Click") {
+            return { count: state.count + 1 };
+          }
+          return state;
+        },
+        view: () => "<button data-msg='{invalid json}'>Click</button>",
+      });
+
+      const button = document.querySelector("#app button");
+      button.click();
+
+      expect(console.error).toHaveBeenCalledWith(
+        "Spriggan: failed to parse data-msg",
+        expect.any(Error),
+      );
+      expect(appApi.getState()).toEqual({ count: 0 });
+    });
+
+    it("should not dispatch for elements without data-msg", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Click") {
+            return { count: state.count + 1 };
+          }
+          return state;
+        },
+        view: () => "<button>No data-msg</button>",
+      });
+
+      const button = document.querySelector("#app button");
+      button.click();
+
+      expect(appApi.getState()).toEqual({ count: 0 });
+    });
+  });
+
+  describe("fn effect", () => {
+    it("should execute custom function and dispatch onComplete", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ result: null }),
+        update: (state, msg) => {
+          if (msg.type === "RunFn") {
+            return [
+              state,
+              {
+                type: "fn",
+                run: () => 42,
+                onComplete: "FnComplete",
+              },
+            ];
+          }
+          if (msg.type === "FnComplete") {
+            return { result: msg.result };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "RunFn" });
+      expect(appApi.getState()).toEqual({ result: 42 });
+    });
+
+    it("should handle function errors gracefully", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ result: null }),
+        update: (state, msg) => {
+          if (msg.type === "RunFn") {
+            return [
+              state,
+              {
+                type: "fn",
+                run: () => {
+                  throw new Error("Function error");
+                },
+              },
+            ];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "RunFn" });
+      expect(console.error).toHaveBeenCalledWith(
+        "Spriggan: fn effect failed",
+        expect.any(Error),
+      );
+    });
+
+    it("should warn if run is not a function", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "RunFn") {
+            return [state, { type: "fn", run: "not a function" }];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "RunFn" });
+      expect(console.warn).toHaveBeenCalledWith(
+        "Spriggan: fn effect requires run property to be a function",
+      );
+    });
+  });
+
+  describe("storage effect - remove action", () => {
+    it("should remove item from localStorage", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ removed: false }),
+        update: (state, msg) => {
+          if (msg.type === "RemoveData") {
+            return [
+              state,
+              {
+                type: "storage",
+                action: "remove",
+                key: "testKey",
+                onSuccess: "DataRemoved",
+              },
+            ];
+          }
+          if (msg.type === "DataRemoved") {
+            return { removed: true };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "RemoveData" });
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith("testKey");
+      expect(appApi.getState()).toEqual({ removed: true });
+    });
+  });
+
+  describe("delay effect edge cases", () => {
+    it("should warn if delay effect has no msg property", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Delay") {
+            return [state, { type: "delay", ms: 100 }];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Delay" });
+      expect(console.warn).toHaveBeenCalledWith(
+        "Spriggan: delay effect requires msg property",
+      );
+    });
+  });
+
+  describe("unknown effect type", () => {
+    it("should warn on unknown effect type", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [state, { type: "unknownEffect" }];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+      expect(console.warn).toHaveBeenCalledWith(
+        'Spriggan: unknown effect type "unknownEffect"',
+      );
+    });
+  });
+
+  describe("multiple effects", () => {
+    it("should process multiple effects from a single update", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      vi.useFakeTimers();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0, delayed: false }),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [
+              { ...state, count: state.count + 1 },
+              { type: "delay", ms: 100, msg: { type: "Delayed" } },
+              { type: "delay", ms: 200, msg: { type: "Delayed2" } },
+            ];
+          }
+          if (msg.type === "Delayed") {
+            return { ...state, delayed: true };
+          }
+          if (msg.type === "Delayed2") {
+            return { ...state, delayed: true, count: state.count + 10 };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+      expect(appApi.getState()).toEqual({ count: 1, delayed: false });
+
+      vi.advanceTimersByTime(100);
+      expect(appApi.getState()).toEqual({ count: 1, delayed: true });
+
+      vi.advanceTimersByTime(100);
+      expect(appApi.getState()).toEqual({ count: 11, delayed: true });
+
+      vi.useRealTimers();
+    });
+
+    it("should skip null/undefined effects in array", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      vi.useFakeTimers();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [
+              { count: state.count + 1 },
+              null,
+              { type: "delay", ms: 10, msg: { type: "Delayed" } },
+              undefined,
+            ];
+          }
+          if (msg.type === "Delayed") {
+            return { count: state.count + 100 };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+      expect(appApi.getState()).toEqual({ count: 1 });
+
+      vi.advanceTimersByTime(10);
+      expect(appApi.getState()).toEqual({ count: 101 });
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe("view edge cases", () => {
+    it("should handle view returning DOM node directly", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state) => state,
+        view: () => {
+          const div = document.createElement("div");
+          div.textContent = "Direct DOM";
+          return div;
+        },
+      });
+
+      expect(document.querySelector("#app").innerHTML).toBe(
+        "<div>Direct DOM</div>",
+      );
+    });
+
+    it("should handle view returning undefined gracefully", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      expect(() => {
+        Spriggan.app("#app", {
+          init: () => ({}),
+          update: (state) => state,
+          view: () => undefined,
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe("update edge cases", () => {
+    it("should handle update returning undefined as state", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Undefined") {
+            return undefined;
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Undefined" });
+      expect(appApi.getState()).toBeUndefined();
+    });
+
+    it("should handle update returning null as state", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Null") {
+            return null;
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Null" });
+      expect(appApi.getState()).toBeNull();
+    });
+  });
+
+  describe("debug mode with non-object state", () => {
+    it("should handle primitive state in debug mode", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      expect(() => {
+        Spriggan.app("#app", {
+          init: () => 0,
+          update: (state, msg) => {
+            if (msg.type === "Inc") return state + 1;
+            return state;
+          },
+          view: (state) => `<div>${state}</div>`,
+          debug: true,
+        });
+      }).not.toThrow();
+    });
+
+    it("should handle null state in debug mode", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      expect(() => {
+        Spriggan.app("#app", {
+          init: () => null,
+          update: (state, msg) => {
+            if (msg.type === "Set") return { value: 1 };
+            return state;
+          },
+          view: () => "",
+          debug: true,
+        });
+      }).not.toThrow();
+    });
+
+    it("should handle primitive state transitions", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => 0,
+        update: (state, msg) => {
+          if (msg.type === "Inc") return state + 1;
+          return state;
+        },
+        view: (state) => `<div>${state}</div>`,
+        debug: true,
+      });
+
+      expect(() => {
+        appApi.dispatch({ type: "Inc" });
+      }).not.toThrow();
+
+      expect(appApi.getState()).toBe(1);
+    });
+  });
+
+  describe("HTTP effect edge cases", () => {
+    it("should handle network errors", async () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      global.fetch.mockImplementation(() =>
+        Promise.reject(new Error("Network error")),
+      );
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ error: null }),
+        update: (state, msg) => {
+          if (msg.type === "Fetch") {
+            return [
+              state,
+              {
+                type: "http",
+                url: "/api/test",
+                onError: "FetchError",
+              },
+            ];
+          }
+          if (msg.type === "FetchError") {
+            return { error: msg.error };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Fetch" });
+
+      await vi.waitFor(() => {
+        expect(appApi.getState()).toEqual({ error: "Network error" });
+      });
+    });
+
+    it("should send body as JSON string", async () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      global.fetch.mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => ({ success: true }),
+        }),
+      );
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Post") {
+            return [
+              state,
+              {
+                type: "http",
+                url: "/api/test",
+                method: "POST",
+                body: { name: "test" },
+              },
+            ];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Post" });
+
+      await vi.waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          "/api/test",
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({ name: "test" }),
+          }),
+        );
+      });
+    });
+
+    it("should merge custom headers", async () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      global.fetch.mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => ({ success: true }),
+        }),
+      );
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Fetch") {
+            return [
+              state,
+              {
+                type: "http",
+                url: "/api/test",
+                headers: { "X-Custom": "value" },
+              },
+            ];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Fetch" });
+
+      await vi.waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          "/api/test",
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+              "X-Custom": "value",
+            }),
+          }),
+        );
+      });
+    });
+  });
+
+  describe("storage effect errors", () => {
+    it("should handle localStorage errors gracefully", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      localStorageMock.setItem.mockImplementation(() => {
+        throw new Error("Quota exceeded");
+      });
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Save") {
+            return [
+              state,
+              {
+                type: "storage",
+                action: "set",
+                key: "test",
+                value: "data",
+              },
+            ];
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Save" });
+
+      expect(console.error).toHaveBeenCalledWith(
+        "Spriggan: storage effect failed",
+        expect.any(Error),
+      );
+    });
+  });
+
+  describe("custom effect handlers", () => {
+    it("should allow custom effect handlers", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const customHandler = vi.fn();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [state, { type: "custom", data: "test" }];
+          }
+          return state;
+        },
+        view: () => "",
+        effects: {
+          custom: customHandler,
+        },
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+
+      expect(customHandler).toHaveBeenCalledWith(
+        { type: "custom", data: "test" },
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe("custom effect runner", () => {
+    it("should allow custom effect runner", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const customRunner = vi.fn();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({}),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [state, { type: "delay", ms: 100, msg: { type: "Done" } }];
+          }
+          return state;
+        },
+        view: () => "",
+        effectRunner: customRunner,
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+
+      expect(customRunner).toHaveBeenCalled();
     });
   });
 });
