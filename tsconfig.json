@@ -4,6 +4,8 @@
     "paths": {
       "@src/*": ["./src/*"]
     },
+    "allowJs": true, // Allow JS files
+    "checkJs": true, // Type-check JS files
     "noEmit": true,
     // File Layout
     // "rootDir": "./src",
@@ -46,5 +48,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "examples/**/*"],
+  "exclude": ["node_modules"]
 }

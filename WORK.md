@@ -57,6 +57,73 @@ Effect types are simple but typo-prone; malformed effect objects are not validat
 
 Debug tools are now instance-scoped on the app API (`appApi.debug.history`, `appApi.debug.timeTravel()`, `appApi.debug.clearHistory()`). Only present when `debug: true` is set.
 
+## Type Checking Plan
+
+Running `mise run typecheck` revealed 51 TypeScript errors in `src/spriggan.js`, primarily due to implicit `any` types, missing type references, and unknown properties. These stem from JavaScript lacking explicit typing. The plan is to add JSDoc type annotations to the JS file, referencing types from `src/spriggan.d.ts` (e.g., `State`, `Message`, `Dispatch`).
+
+**Goal**: Eliminate all type violations while keeping the file as JS. No code changes beyond JSDoc comments.
+
+**Scope**: Focus on `src/spriggan.js`; ignore external libs (e.g., Idiomorph types assumed available).
+
+**Effort Estimate**: Medium (2-3 hours). ~50 JSDoc additions, grouped by function/variable.
+
+### Analysis of Violations
+Grouped by error type (from `mise run typecheck` output):
+
+- **Missing Type References**: `State`, `Idiomorph` (need imports or declarations).
+- **Implicit `any` Variables/Parameters**: ~40 cases (e.g., function params like `msg`, `dispatch`).
+- **Unknown Object Properties**: Config object properties (e.g., `init`, `update`).
+- **Other**: Missing types on closures, DOM elements.
+
+### Proposed Fixes
+Add JSDoc comments with `@type`, `@param`, `@typedef` where needed. Reference `.d.ts` types.
+
+#### 1. **Global/Type Imports (Top of File)**
+   - Add `// @ts-check` if not present.
+   - Import types: `/** @typedef {import('./spriggan.d.ts').State} State */` (but adjust for generics).
+   - Declare missing globals: `/** @typedef {typeof Idiomorph} Idiomorph */` (assume available).
+
+#### 2. **Function/Variable Type Annotations**
+   - For each implicit `any`, add `@type` or `@param`.
+   - Examples:
+     - Line 46: `/** @type {State} */ const state = ...`
+     - Line 150: `/** @param {Message} msg */`
+     - Line 113: `/** @type {HTMLElement} */ const rootElement = ...`
+
+#### 3. **Object Property Access**
+   - For config object: Use `@type {AppConfig}` on the config param.
+   - Example: `/** @param {AppConfig} config */ function app(selector, config)`
+
+#### 4. **DOM/Effect Handler Types**
+   - DOM elements: `/** @type {HTMLElement} */`
+   - Effect handlers: `/** @param {Effect} effect */`, `/** @param {Dispatch} dispatch */`
+
+#### 5. **Generic Types**
+   - Where generics are used (e.g., `T`, `M`), use JSDoc generics: `/** @template T, M extends Message */`
+
+### Implementation Steps
+1. **Add Top-Level Type Declarations** (5 min): Add @ts-check and typedefs for missing types.
+2. **Annotate Closures/Variables** (30 min): Go through each error line, add @type comments.
+3. **Annotate Function Parameters** (30 min): Add @param for functions with implicit params.
+4. **Annotate Config/Object Access** (30 min): Type config objects and property access.
+5. **Re-run Typecheck** (10 min): Verify fixes; iterate on remaining errors.
+
+### Tradeoffs & Risks
+- **Pros**: Enables type checking without converting to TS; improves dev experience.
+- **Cons**: Verbose JSDoc; potential conflicts with .d.ts if types mismatch.
+- **Risks**: Over-typing could mask real issues; ensure .d.ts is accurate.
+- **Alternatives**: Convert to .ts (full rewrite) or disable strict checks.
+
+### Success Criteria
+- `mise run typecheck` passes with 0 errors.
+- File remains .js; no runtime changes.
+- Types align with .d.ts definitions.
+
+### References
+- Type violations from `mise run typecheck` output.
+- Types defined in `src/spriggan.d.ts`.
+- JSDoc syntax: https://jsdoc.app/tags-type.html.
+
 ## Test Coverage
 
 Comprehensive test suite with 83 tests covering:

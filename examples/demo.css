@@ -1,0 +1,113 @@
+@import "https://unpkg.com/open-props";
+
+body {
+  font-family: var(--font-sans);
+  background: var(--gray-13);
+  color: var(--gray-1);
+}
+
+.task-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  border: 1px solid var(--gray-6);
+  padding: 0.75rem 1rem;
+}
+
+.task-item .task-actions {
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.task-item:hover .task-actions,
+.task-item:focus-within .task-actions {
+  opacity: 1;
+}
+
+*:focus {
+  box-shadow: 0 0 1rem 0.2rem var(--blue-9);
+}
+button:active {
+  box-shadow: 0 0 1rem 0.2rem var(--orange-9);
+}
+
+button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background: var(--gray-10);
+  color: var(--gray-1);
+  margin: 0.3rem;
+  border: 2px outset var(--orange-12);
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-item.completed .checkbox {
+  accent-color: var(--green-5);
+}
+
+.task-item.editing .task-actions {
+  opacity: 1;
+}
+
+.task-item.editing {
+  grid-template-columns: auto 1fr auto;
+}
+
+.task-item.editing input[type="text"] {
+  width: 100%;
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+  background: var(--gray-12);
+  color: var(--gray-1);
+  min-width: 300px;
+  max-width: 90vw;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modal-actions {
+  gap: 0.5rem;
+}
+
+.modal-actions button {
+  background: var(--gray-7);
+  color: var(--gray-1);
+}
+
+.filters button {
+  background: var(--gray-7);
+  color: var(--gray-1);
+}
+
+.filters button.secondary {
+  background: var(--gray-12);
+}
+
+.quote {
+  background: var(--blue-9);
+  font-style: italic;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.stat {
+  background: var(--orange-9);
+}

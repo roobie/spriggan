@@ -3,6 +3,13 @@
  * No build tools, pure functions, LLM-friendly
  */
 
+// @ts-check
+
+/** @typedef {{type: string, [key: string]: any}} Message */
+/** @typedef {(msg: Message) => void} Dispatch */
+/** @typedef {{type: string, [key: string]: any}} Effect */
+/** @typedef {{init: any, update: Function, view: Function, effects?: Object, effectRunner?: Function, subscriptions?: Function, debug?: boolean}} AppConfig */
+
 /**
  * Tagged template literal for HTML
  * @param {TemplateStringsArray} strings - Template string parts
@@ -10,10 +17,10 @@
  * @returns {string} HTML string
  */
 export function html(strings, ...values) {
-  let result = strings[0];
+  let result = strings[0] ?? "";
 
   for (let i = 0; i < values.length; i++) {
-    const value = values[i];
+    const value = values[i] ?? "";
 
     if (Array.isArray(value)) {
       result += value.join("");
@@ -43,22 +50,33 @@ export function html(strings, ...values) {
  * @returns {{app: Function, html: Function}}
  */
 export default function createSpriggan() {
+  /** @type {*} */
   let currentState = null;
+  /** @type {*} */
   let _currentView = null;
+  /** @type {HTMLElement | null} */
   let rootElement = null;
+  /** @type {Function | null} */
   let updateFn = null;
+  /** @type {Function | null} */
   let viewFn = null;
+  /** @type {Record<string, Function>} */
   let effectHandlers = {};
+  /** @type {Function | null} */
   let runEffectFn = null;
+  /** @type {boolean} */
   let isDebugMode = false;
+  /** @type {boolean} */
   let eventListenersAttached = false;
+  /** @type {Record<string, (e: Event) => void> | null} */
   let boundEventHandlers = null;
+  /** @type {Array<*>} */
   let debugHistory = [];
 
   /**
    * Initialize a Spriggan application
    * @param {string} selector - CSS selector for root element
-   * @param {Object} config - Application configuration
+   * @param {AppConfig} config - Application configuration
    * @returns {Object} API for external interaction
    */
   function app(selector, config) {
@@ -76,7 +94,7 @@ export default function createSpriggan() {
       throw new Error("Spriggan: init, update, and view are required");
     }
 
-    rootElement = document.querySelector(selector);
+    rootElement = /** @type {HTMLElement} */ (document.querySelector(selector));
     if (!rootElement) {
       throw new Error(`Spriggan: element "${selector}" not found`);
     }
@@ -128,7 +146,7 @@ export default function createSpriggan() {
       ...(isDebugMode && {
         debug: {
           history: debugHistory,
-          timeTravel: (index) => {
+          timeTravel: /** @param {number} index */ (index) => {
             if (debugHistory[index]) {
               currentState = debugHistory[index].state;
               render();
@@ -146,6 +164,7 @@ export default function createSpriggan() {
     };
   }
 
+  /** @param {Message} msg */
   function dispatch(msg) {
     if (!msg || !msg.type) {
       console.warn("Spriggan: dispatch called with invalid message", msg);
@@ -183,12 +202,16 @@ export default function createSpriggan() {
         Idiomorph.morph(rootElement, `<div>${newContent}</div>`, {
           morphStyle: "innerHTML",
           callbacks: {
-            beforeNodeMorphed: (fromNode, toNode) => {
-              if (fromNode.id && toNode.id) {
-                return fromNode.id === toNode.id;
-              }
-              return true;
-            },
+            beforeNodeMorphed:
+              /** @param {HTMLElement} fromNode */ /** @param {HTMLElement} toNode */ (
+                fromNode,
+                toNode,
+              ) => {
+                if (fromNode.id && toNode.id) {
+                  return fromNode.id === toNode.id;
+                }
+                return true;
+              },
           },
         });
       } else {
@@ -212,11 +235,12 @@ export default function createSpriggan() {
     }
   }
 
+  /** @param {HTMLElement} root */
   function attachEventListeners(root) {
     if (eventListenersAttached) return;
 
     boundEventHandlers = {
-      click: (e) => {
+      click: /** @param {Event} e */ (e) => {
         const target = e.target.closest("[data-msg]");
         if (target) {
           try {
@@ -228,7 +252,7 @@ export default function createSpriggan() {
         }
       },
 
-      input: (e) => {
+      input: /** @param {Event} e */ (e) => {
         if (e.target.dataset.model) {
           dispatch({
             type: "FieldChanged",
@@ -238,7 +262,7 @@ export default function createSpriggan() {
         }
       },
 
-      change: (e) => {
+      change: /** @param {Event} e */ (e) => {
         if (e.target.dataset.model) {
           const value =
             e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -251,7 +275,7 @@ export default function createSpriggan() {
         }
       },
 
-      submit: (e) => {
+      submit: /** @param {Event} e */ (e) => {
         const target = e.target.closest("[data-msg]");
         if (target) {
           e.preventDefault();
@@ -273,6 +297,7 @@ export default function createSpriggan() {
     eventListenersAttached = true;
   }
 
+  /** @param {HTMLElement} root */
   function detachEventListeners(root) {
     if (!boundEventHandlers || !root) return;
 
@@ -285,6 +310,7 @@ export default function createSpriggan() {
     eventListenersAttached = false;
   }
 
+  /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ /** @param {Object} handlers */
   function defaultEffectRunner(effect, dispatch, handlers) {
     isDebugMode &&
       console.log(`[Spriggan] Running DOM effect: ${effect?.type}"`);
@@ -309,7 +335,10 @@ export default function createSpriggan() {
   }
 
   const defaultEffects = {
-    http: (effect, dispatch) => {
+    http: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (
+      effect,
+      dispatch,
+    ) => {
       const {
         url,
         method = "GET",
@@ -319,6 +348,7 @@ export default function createSpriggan() {
         onError,
       } = effect;
 
+      /** @type {RequestInit} */
       const fetchOptions = {
         method,
         headers: {
@@ -359,7 +389,10 @@ export default function createSpriggan() {
         });
     },
 
-    delay: (effect, dispatch) => {
+    delay: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (
+      effect,
+      dispatch,
+    ) => {
       const { ms, msg } = effect;
 
       if (!msg) {
@@ -372,7 +405,10 @@ export default function createSpriggan() {
       }, ms);
     },
 
-    storage: (effect, dispatch) => {
+    storage: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (
+      effect,
+      dispatch,
+    ) => {
       const { action, key, value, onSuccess } = effect;
 
       try {
@@ -397,7 +433,10 @@ export default function createSpriggan() {
       }
     },
 
-    fn: (effect, dispatch) => {
+    fn: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (
+      effect,
+      dispatch,
+    ) => {
       const { run, onComplete } = effect;
 
       if (typeof run !== "function") {
@@ -417,7 +456,10 @@ export default function createSpriggan() {
       }
     },
 
-    dom: (effect, _dispatch) => {
+    dom: /** @param {Effect} effect */ /** @param {Dispatch} _dispatch */ (
+      effect,
+      _dispatch,
+    ) => {
       const { action, selector, name, value, delay = 0 } = effect;
       const runDomAction = () => {
         const element = selector ? document.querySelector(selector) : null;
@@ -498,7 +540,7 @@ export default function createSpriggan() {
   };
 
   function debugUpdate(updateFn) {
-    return (state, msg) => {
+    return /** @param {*} state */ /** @param {Message} msg */ (state, msg) => {
       const startTime = performance.now();
 
       console.group(`[Spriggan] Dispatch: ${msg.type}`);
@@ -542,13 +584,18 @@ export default function createSpriggan() {
     };
   }
 
-  function debugEffectRunner(runner) {
-    return (effect, dispatch, handlers) => {
+  function debugEffectRunner(/** @param {Function} runner */ runner) {
+    return /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ /** @param {Object} handlers */ (
+      effect,
+      dispatch,
+      handlers,
+    ) => {
       console.log("[Spriggan Effect]", effect);
       return runner(effect, dispatch, handlers);
     };
   }
 
+  /** @param {*} oldState */ /** @param {*} newState */
   function stateDiff(oldState, newState) {
     const changes = [];
 

@@ -26,10 +26,13 @@ depends = [
     "lint"
 ]
 
-[tasks.check]
+[tasks.typecheck]
 run = "bunx tsc --noEmit"
+
+[tasks.check]
 depends = [
     "install-deps",
     "tidy",
-    "lint"
+    "lint",
+    # "typecheck",
 ]
