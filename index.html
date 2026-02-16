@@ -7,6 +7,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css"
     />
+    <link
+      href="https://unpkg.com/basscss@8.0.2/css/basscss.min.css"
+      rel="stylesheet"
+    />
     <style>
       @import "https://unpkg.com/open-props";
 
@@ -69,6 +73,53 @@
 
       .task-item.editing input[type="text"] {
         width: 100%;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        position: relative;
+        z-index: 1;
+        background: var(--gray-12);
+        color: var(--gray-1);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        min-width: 300px;
+        max-width: 90vw;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-content h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+
+      .modal-content input[type="text"] {
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+
+      .modal-actions button {
+        margin: 0;
       }
 
       .filters {
@@ -325,6 +376,7 @@
             ${renderQuote(state, dispatch)} ${renderStats(state)}
             ${renderFilters(state, dispatch)} ${renderAddTask(state, dispatch)}
             ${renderTaskList(filteredTasks, state, dispatch)}
+            ${renderEditModal(state)}
 
             <div>
               <button
@@ -437,14 +489,10 @@
       }
 
       function renderTask(task, state, _dispatch) {
-        const isEditing = state.editingId === task.id;
+        const _isEditing = state.editingId === task.id;
 
         return html`
-          <li
-            class="task-item ${task.completed ? "completed" : ""} ${isEditing
-              ? "editing"
-              : ""}"
-          >
+          <li class="task-item ${task.completed ? "completed" : ""}">
             <input
               type="checkbox"
               class="checkbox"
@@ -452,31 +500,47 @@
               ${task.completed ? "checked" : ""}
             />
 
-            ${isEditing
-              ? html`
-                  <input
-                    type="text"
-                    data-model="editText"
-                    value="${state.editText}"
-                    autofocus
-                  />
-                  <div class="task-actions">
-                    <button data-msg=${{ type: "SaveEdit" }}>Save</button>
-                    <button data-msg=${{ type: "CancelEdit" }}>Cancel</button>
-                  </div>
-                `
-              : html`
-                  <span class="task-text">${task.text}</span>
-                  <div class="task-actions">
-                    <button data-msg=${{ type: "StartEdit", id: task.id }}>
-                      Edit
-                    </button>
-                    <button data-msg=${{ type: "DeleteTask", id: task.id }}>
-                      Delete
-                    </button>
-                  </div>
-                `}
+            <span class="task-text">${task.text}</span>
+            <div class="task-actions">
+              <button data-msg=${{ type: "StartEdit", id: task.id }}>
+                Edit
+              </button>
+              <button data-msg=${{ type: "DeleteTask", id: task.id }}>
+                Delete
+              </button>
+            </div>
           </li>
+        `;
+      }
+
+      function renderEditModal(state) {
+        if (state.editingId === null) return "";
+
+        const task = state.tasks.find((t) => t.id === state.editingId);
+        if (!task) return "";
+
+        return html`
+          <div class="modal-overlay">
+            <div
+              class="modal-backdrop"
+              data-msg=${{ type: "CancelEdit" }}
+            ></div>
+            <div class="modal-content">
+              <h3>Edit Task</h3>
+              <input
+                type="text"
+                data-model="editText"
+                value="${state.editText}"
+                autofocus
+              />
+              <div class="modal-actions">
+                <button data-msg=${{ type: "CancelEdit" }}>Cancel</button>
+                <button data-msg=${{ type: "SaveEdit" }} class="secondary">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
         `;
       }
 
