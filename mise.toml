@@ -13,7 +13,7 @@ run = "bun install"
 run = "bunx biome format --write"
 
 [tasks.test]
-run = "bunx vitest run --environment jsdom --reporter verbose"
+run = "bunx vitest run --reporter verbose"
 
 [tasks.lint]
 run = "bunx biome lint"
