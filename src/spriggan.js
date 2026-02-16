@@ -5,10 +5,15 @@
 
 // @ts-check
 
-/** @typedef {{type: string, [key: string]: any}} Message */
+/** @typedef {{type: string, [key: string]: unknown}} Message */
 /** @typedef {(msg: Message) => void} Dispatch */
-/** @typedef {{type: string, [key: string]: any}} Effect */
-/** @typedef {{init: any, update: Function, view: Function, effects?: Object, effectRunner?: Function, subscriptions?: Function, debug?: boolean}} AppConfig */
+/** @typedef {{type: string, [key: string]: unknown}} Effect */
+/** @typedef {(effect: Effect, dispatch: Dispatch) => void} EffectHandler */
+/** @typedef {(effect: Effect, dispatch: Dispatch, handlers: Record<string, EffectHandler>) => void} EffectRunner */
+/** @typedef {(dispatch: Dispatch) => (() => void) | (() => void)[] | void} SubscriptionFn */
+
+/** @type {Window & {Idiomorph?: {morph: (el: Element, content: string, opts: object) => void}}} */
+const win = /** @type {*} */ (typeof window !== "undefined" ? window : {});
 
 /**
  * Tagged template literal for HTML
@@ -47,37 +52,43 @@ export function html(strings, ...values) {
 
 /**
  * Create a new Spriggan instance
- * @returns {{app: Function, html: Function}}
+ * @returns {{app: Function, html: typeof html}}
  */
 export default function createSpriggan() {
-  /** @type {*} */
+  /** @type {unknown} */
   let currentState = null;
-  /** @type {*} */
+  /** @type {unknown} */
   let _currentView = null;
   /** @type {HTMLElement | null} */
   let rootElement = null;
-  /** @type {Function | null} */
+  /** @type {((state: unknown, msg: Message) => unknown) | null} */
   let updateFn = null;
-  /** @type {Function | null} */
+  /** @type {((state: unknown, dispatch: Dispatch) => string | Node) | null} */
   let viewFn = null;
-  /** @type {Record<string, Function>} */
+  /** @type {Record<string, EffectHandler>} */
   let effectHandlers = {};
-  /** @type {Function | null} */
+  /** @type {EffectRunner | null} */
   let runEffectFn = null;
-  /** @type {boolean} */
   let isDebugMode = false;
-  /** @type {boolean} */
   let eventListenersAttached = false;
   /** @type {Record<string, (e: Event) => void> | null} */
   let boundEventHandlers = null;
-  /** @type {Array<*>} */
+  /** @type {Array<{msg: Message, state: unknown, timestamp: number}>} */
   let debugHistory = [];
 
   /**
    * Initialize a Spriggan application
    * @param {string} selector - CSS selector for root element
-   * @param {AppConfig} config - Application configuration
-   * @returns {Object} API for external interaction
+   * @param {{
+   *   init: unknown | (() => unknown),
+   *   update: (state: unknown, msg: Message) => unknown,
+   *   view: (state: unknown, dispatch: Dispatch) => string | Node,
+   *   effects?: Record<string, EffectHandler>,
+   *   effectRunner?: EffectRunner,
+   *   subscriptions?: SubscriptionFn,
+   *   debug?: boolean
+   * }} config - Application configuration
+   * @returns {{dispatch: Dispatch, getState: () => unknown, destroy: () => void}}
    */
   function app(selector, config) {
     const {
@@ -94,10 +105,11 @@ export default function createSpriggan() {
       throw new Error("Spriggan: init, update, and view are required");
     }
 
-    rootElement = /** @type {HTMLElement} */ (document.querySelector(selector));
-    if (!rootElement) {
+    const el = document.querySelector(selector);
+    if (!el) {
       throw new Error(`Spriggan: element "${selector}" not found`);
     }
+    rootElement = /** @type {HTMLElement} */ (el);
 
     isDebugMode = debug;
     updateFn = isDebugMode ? debugUpdate(update) : update;
@@ -105,12 +117,14 @@ export default function createSpriggan() {
     effectHandlers = { ...defaultEffects, ...effects };
     runEffectFn = isDebugMode ? debugEffectRunner(effectRunner) : effectRunner;
 
-    currentState = typeof init === "function" ? init() : init;
+    currentState =
+      typeof init === "function" ? /** @type {() => unknown} */ (init)() : init;
 
     if (isDebugMode) {
       console.log("[Spriggan] Initialized with state:", currentState);
     }
 
+    /** @type {Array<() => void>} */
     let cleanupFns = [];
     if (subscriptions) {
       const cleanup = subscriptions(dispatch);
@@ -127,9 +141,8 @@ export default function createSpriggan() {
       destroy: () => {
         cleanupFns.forEach((fn) => void fn());
 
-        detachEventListeners(rootElement);
-
         if (rootElement) {
+          detachEventListeners(rootElement);
           rootElement.innerHTML = "";
         }
 
@@ -171,6 +184,7 @@ export default function createSpriggan() {
       return;
     }
 
+    if (!updateFn) return;
     const result = updateFn(currentState, msg);
 
     if (Array.isArray(result)) {
@@ -178,7 +192,7 @@ export default function createSpriggan() {
       currentState = newState;
 
       effects.forEach((eff) => {
-        if (eff) {
+        if (eff && runEffectFn) {
           runEffectFn(eff, dispatch, effectHandlers);
         }
       });
@@ -190,6 +204,8 @@ export default function createSpriggan() {
   }
 
   function render() {
+    if (!rootElement || !viewFn) return;
+
     const startTime = isDebugMode ? performance.now() : 0;
 
     const newView = viewFn(currentState, dispatch);
@@ -198,20 +214,19 @@ export default function createSpriggan() {
     if (newContent == null || newContent === "") {
       rootElement.innerHTML = "";
     } else if (typeof newContent === "string") {
-      if (typeof Idiomorph !== "undefined") {
-        Idiomorph.morph(rootElement, `<div>${newContent}</div>`, {
+      if (typeof win.Idiomorph !== "undefined") {
+        win.Idiomorph.morph(rootElement, `<div>${newContent}</div>`, {
           morphStyle: "innerHTML",
           callbacks: {
-            beforeNodeMorphed:
-              /** @param {HTMLElement} fromNode */ /** @param {HTMLElement} toNode */ (
-                fromNode,
-                toNode,
-              ) => {
-                if (fromNode.id && toNode.id) {
-                  return fromNode.id === toNode.id;
-                }
-                return true;
-              },
+            beforeNodeMorphed: (
+              /** @type {HTMLElement} */ fromNode,
+              /** @type {HTMLElement} */ toNode,
+            ) => {
+              if (fromNode.id && toNode.id) {
+                return fromNode.id === toNode.id;
+              }
+              return true;
+            },
           },
         });
       } else {
@@ -239,10 +254,13 @@ export default function createSpriggan() {
   function attachEventListeners(root) {
     if (eventListenersAttached) return;
 
-    boundEventHandlers = {
+    /** @type {Record<string, (e: Event) => void>} */
+    const handlers = {
       click: /** @param {Event} e */ (e) => {
-        const target = e.target.closest("[data-msg]");
-        if (target) {
+        const target = /** @type {HTMLElement | null} */ (
+          /** @type {Element} */ (e.target).closest("[data-msg]")
+        );
+        if (target && target.dataset.msg) {
           try {
             const msg = JSON.parse(target.dataset.msg);
             dispatch(msg);
@@ -253,31 +271,34 @@ export default function createSpriggan() {
       },
 
       input: /** @param {Event} e */ (e) => {
-        if (e.target.dataset.model) {
+        const el = /** @type {HTMLInputElement} */ (e.target);
+        if (el.dataset && el.dataset.model) {
           dispatch({
             type: "FieldChanged",
-            field: e.target.dataset.model,
-            value: e.target.value,
+            field: el.dataset.model,
+            value: el.value,
           });
         }
       },
 
       change: /** @param {Event} e */ (e) => {
-        if (e.target.dataset.model) {
-          const value =
-            e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        const el = /** @type {HTMLInputElement} */ (e.target);
+        if (el.dataset && el.dataset.model) {
+          const value = el.type === "checkbox" ? el.checked : el.value;
 
           dispatch({
             type: "FieldChanged",
-            field: e.target.dataset.model,
+            field: el.dataset.model,
             value: value,
           });
         }
       },
 
       submit: /** @param {Event} e */ (e) => {
-        const target = e.target.closest("[data-msg]");
-        if (target) {
+        const target = /** @type {HTMLElement | null} */ (
+          /** @type {Element} */ (e.target).closest("[data-msg]")
+        );
+        if (target && target.dataset.msg) {
           e.preventDefault();
           try {
             const msg = JSON.parse(target.dataset.msg);
@@ -289,28 +310,58 @@ export default function createSpriggan() {
       },
     };
 
-    root.addEventListener("click", boundEventHandlers.click);
-    root.addEventListener("input", boundEventHandlers.input);
-    root.addEventListener("change", boundEventHandlers.change);
-    root.addEventListener("submit", boundEventHandlers.submit);
+    boundEventHandlers = handlers;
+
+    root.addEventListener(
+      "click",
+      /** @type {EventListener} */ (handlers.click),
+    );
+    root.addEventListener(
+      "input",
+      /** @type {EventListener} */ (handlers.input),
+    );
+    root.addEventListener(
+      "change",
+      /** @type {EventListener} */ (handlers.change),
+    );
+    root.addEventListener(
+      "submit",
+      /** @type {EventListener} */ (handlers.submit),
+    );
 
     eventListenersAttached = true;
   }
 
   /** @param {HTMLElement} root */
   function detachEventListeners(root) {
-    if (!boundEventHandlers || !root) return;
+    if (!boundEventHandlers) return;
 
-    root.removeEventListener("click", boundEventHandlers.click);
-    root.removeEventListener("input", boundEventHandlers.input);
-    root.removeEventListener("change", boundEventHandlers.change);
-    root.removeEventListener("submit", boundEventHandlers.submit);
+    root.removeEventListener(
+      "click",
+      /** @type {EventListener} */ (boundEventHandlers.click),
+    );
+    root.removeEventListener(
+      "input",
+      /** @type {EventListener} */ (boundEventHandlers.input),
+    );
+    root.removeEventListener(
+      "change",
+      /** @type {EventListener} */ (boundEventHandlers.change),
+    );
+    root.removeEventListener(
+      "submit",
+      /** @type {EventListener} */ (boundEventHandlers.submit),
+    );
 
     boundEventHandlers = null;
     eventListenersAttached = false;
   }
 
-  /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ /** @param {Object} handlers */
+  /**
+   * @param {Effect} effect
+   * @param {Dispatch} dispatch
+   * @param {Record<string, EffectHandler>} handlers
+   */
   function defaultEffectRunner(effect, dispatch, handlers) {
     isDebugMode &&
       console.log(`[Spriggan] Running DOM effect: ${effect?.type}"`);
@@ -334,11 +385,9 @@ export default function createSpriggan() {
     }
   }
 
+  /** @type {Record<string, EffectHandler>} */
   const defaultEffects = {
-    http: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (
-      effect,
-      dispatch,
-    ) => {
+    http: (effect, dispatch) => {
       const {
         url,
         method = "GET",
@@ -346,7 +395,9 @@ export default function createSpriggan() {
         headers = {},
         onSuccess,
         onError,
-      } = effect;
+      } = /** @type {{url: string, method?: string, body?: unknown, headers?: Record<string, string>, onSuccess?: string, onError?: string}} */ (
+        /** @type {unknown} */ (effect)
+      );
 
       /** @type {RequestInit} */
       const fetchOptions = {
@@ -401,8 +452,8 @@ export default function createSpriggan() {
       }
 
       setTimeout(() => {
-        dispatch(msg);
-      }, ms);
+        dispatch(/** @type {Message} */ (msg));
+      }, /** @type {number} */ (ms));
     },
 
     storage: /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ (
@@ -413,19 +464,24 @@ export default function createSpriggan() {
 
       try {
         if (action === "set") {
-          localStorage.setItem(key, JSON.stringify(value));
+          localStorage.setItem(
+            /** @type {string} */ (key),
+            JSON.stringify(value),
+          );
           if (onSuccess) {
-            dispatch({ type: onSuccess });
+            dispatch({ type: /** @type {string} */ (onSuccess) });
           }
         } else if (action === "get") {
-          const data = JSON.parse(localStorage.getItem(key) || "null");
+          const data = JSON.parse(
+            localStorage.getItem(/** @type {string} */ (key)) || "null",
+          );
           if (onSuccess) {
-            dispatch({ type: onSuccess, data });
+            dispatch({ type: /** @type {string} */ (onSuccess), data });
           }
         } else if (action === "remove") {
-          localStorage.removeItem(key);
+          localStorage.removeItem(/** @type {string} */ (key));
           if (onSuccess) {
-            dispatch({ type: onSuccess });
+            dispatch({ type: /** @type {string} */ (onSuccess) });
           }
         }
       } catch (err) {
@@ -449,7 +505,7 @@ export default function createSpriggan() {
       try {
         const result = run();
         if (onComplete) {
-          dispatch({ type: onComplete, result });
+          dispatch({ type: /** @type {string} */ (onComplete), result });
         }
       } catch (err) {
         console.error("Spriggan: fn effect failed", err);
@@ -462,7 +518,9 @@ export default function createSpriggan() {
     ) => {
       const { action, selector, name, value, delay = 0 } = effect;
       const runDomAction = () => {
-        const element = selector ? document.querySelector(selector) : null;
+        const element = selector
+          ? document.querySelector(/** @type {string} */ (selector))
+          : null;
 
         if (!element && selector) {
           console.warn(
@@ -474,28 +532,33 @@ export default function createSpriggan() {
         try {
           switch (action) {
             case "focus":
-              element?.focus();
+              /** @type {HTMLElement} */ (element)?.focus();
               break;
 
             case "blur":
-              element?.blur();
+              /** @type {HTMLElement} */ (element)?.blur();
               break;
 
             case "scrollIntoView":
-              element?.scrollIntoView(
-                typeof effect.options === "object" ? effect.options : {},
+              /** @type {HTMLElement} */ (element)?.scrollIntoView(
+                typeof effect.options === "object"
+                  ? /** @type {ScrollIntoViewOptions} */ (effect.options)
+                  : {},
               );
               break;
 
             case "setAttribute":
               if (element && name) {
-                element.setAttribute(name, String(value));
+                element.setAttribute(
+                  /** @type {string} */ (name),
+                  String(value),
+                );
               }
               break;
 
             case "removeAttribute":
               if (element && name) {
-                element.removeAttribute(name);
+                element.removeAttribute(/** @type {string} */ (name));
               }
               break;
 
@@ -519,7 +582,9 @@ export default function createSpriggan() {
 
             case "setProperty":
               if (element && name) {
-                element[name] = value;
+                /** @type {Record<string, unknown>} */ (
+                  /** @type {*} */ (element)
+                )[/** @type {string} */ (name)] = value;
               }
               break;
 
@@ -531,16 +596,20 @@ export default function createSpriggan() {
         }
       };
 
-      if (delay > 0) {
-        setTimeout(runDomAction, delay);
+      if (/** @type {number} */ (delay) > 0) {
+        setTimeout(runDomAction, /** @type {number} */ (delay));
       } else {
         requestAnimationFrame(runDomAction);
       }
     },
   };
 
+  /**
+   * @param {(state: unknown, msg: Message) => unknown} updateFn
+   * @returns {(state: unknown, msg: Message) => unknown}
+   */
   function debugUpdate(updateFn) {
-    return /** @param {*} state */ /** @param {Message} msg */ (state, msg) => {
+    return (state, msg) => {
       const startTime = performance.now();
 
       console.group(`[Spriggan] Dispatch: ${msg.type}`);
@@ -584,19 +653,24 @@ export default function createSpriggan() {
     };
   }
 
-  function debugEffectRunner(/** @param {Function} runner */ runner) {
-    return /** @param {Effect} effect */ /** @param {Dispatch} dispatch */ /** @param {Object} handlers */ (
-      effect,
-      dispatch,
-      handlers,
-    ) => {
+  /**
+   * @param {EffectRunner} runner
+   * @returns {EffectRunner}
+   */
+  function debugEffectRunner(runner) {
+    return (effect, dispatch, handlers) => {
       console.log("[Spriggan Effect]", effect);
       return runner(effect, dispatch, handlers);
     };
   }
 
-  /** @param {*} oldState */ /** @param {*} newState */
+  /**
+   * @param {unknown} oldState
+   * @param {unknown} newState
+   * @returns {Array<{key: string, from: unknown, to: unknown}>}
+   */
   function stateDiff(oldState, newState) {
+    /** @type {Array<{key: string, from: unknown, to: unknown}>} */
     const changes = [];
 
     if (
@@ -615,21 +689,24 @@ export default function createSpriggan() {
       return changes;
     }
 
-    for (const key in newState) {
-      if (oldState[key] !== newState[key]) {
+    const oldObj = /** @type {Record<string, unknown>} */ (oldState);
+    const newObj = /** @type {Record<string, unknown>} */ (newState);
+
+    for (const key in newObj) {
+      if (oldObj[key] !== newObj[key]) {
         changes.push({
           key,
-          from: oldState[key],
-          to: newState[key],
+          from: oldObj[key],
+          to: newObj[key],
         });
       }
     }
 
-    for (const key in oldState) {
-      if (!(key in newState)) {
+    for (const key in oldObj) {
+      if (!(key in newObj)) {
         changes.push({
           key,
-          from: oldState[key],
+          from: oldObj[key],
           to: undefined,
         });
       }

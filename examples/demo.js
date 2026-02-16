@@ -8,6 +8,20 @@ const converter = new showdown.Converter();
 // Model
 // ========================================================================
 
+/**
+ * @typedef {{
+ *   tasks: { id: number; text: string; completed: boolean; created: number }[];
+ *   filter: "all" | "active" | "completed";
+ *   newTaskText: string;
+ *   editingId: number | null;
+ *   editText: string;
+ *   quote: string | null;
+ *   loading: boolean;
+ *   error: string | null;
+ *   nextId: number;
+ * }} State
+ * @returns {State}
+ */
 const init = () => ({
   tasks: [],
   filter: "all", // 'all', 'active', 'completed'
@@ -24,6 +38,51 @@ const init = () => ({
 // Update
 // ========================================================================
 
+/**
+ * @typedef {{
+ *  type: "FieldChanged";
+ *  field: "newTaskText" | "editText";
+ *  value: string;
+ * } | {
+ *  type: "AddTask";
+ * } | {
+ *  type: "ToggleTask";
+ *  id: number;
+ * } | {
+ *  type: "DeleteTask";
+ *  id: number;
+ * } | {
+ *  type: "StartEdit";
+ *  id: number;
+ * } | {
+ *  type: "UpdateEdit";
+ *  text: string;
+ * } | {
+ *  type: "SaveEdit";
+ * } | {
+ *  type: "CancelEdit";
+ * } | {
+ *  type: "UpdateNewTask";
+ *  text: string;
+ * } | {
+ *  type: "SetFilter";
+ *  filter: "all" | "active" | "completed";
+ * } | {
+ *  type: "LoadTasks";
+ *  tasks: { id: number; text: string; completed: boolean; created: number }[];
+ * } | {
+ *  type: "FetchQuote";
+ * } | {
+ *  type: "QuoteFetched";
+ *  data: string;
+ * } | {
+ *  type: "QuoteError";
+ *  error: string;
+ * }} Msg
+ * @param {State} state
+ * @param {Msg} msg
+ * @returns
+ */
 function update(state, msg) {
   switch (msg.type) {
     case "FieldChanged":
@@ -219,11 +278,9 @@ function view(state, dispatch) {
       <div>
         <button
           data-msg=${{ type: "ClearCompleted" }}
-          ${
-            state.tasks.filter((t) => t.completed).length === 0
-              ? "disabled"
-              : ""
-          }
+          ${state.tasks.filter((t) => t.completed).length === 0
+            ? "disabled"
+            : ""}
         >
           Clear Completed (${state.tasks.filter((t) => t.completed).length})
         </button>
@@ -337,9 +394,9 @@ function renderTask(task, state, _dispatch) {
 
   return html`
     <li
-      class="task-item ${
-        task.completed ? "completed" : ""
-      } items-center p1 border rounded my1 list-style-none"
+      class="task-item ${task.completed
+        ? "completed"
+        : ""} items-center p1 border rounded my1 list-style-none"
     >
       <input
         type="checkbox"
