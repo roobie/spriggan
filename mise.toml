@@ -1,0 +1,15 @@
+[tools]
+bun = "1.3"
+watchexec = "2"
+
+[tasks.fmt]
+run = "bunx prettier . -w"
+
+[tasks.test]
+run = "bunx vitest run --environment jsdom --reporter verbose"
+
+[tasks.tidy]
+depends = [
+"fmt",
+"test"
+]

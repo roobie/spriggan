@@ -178,9 +178,10 @@
           morphStyle: "innerHTML",
           callbacks: {
             beforeNodeMorphed: (fromNode, toNode) => {
-              // Preserve elements with matching keys
-              if (fromNode.dataset?.key && toNode.dataset?.key) {
-                return fromNode.dataset.key === toNode.dataset.key;
+              // Idiomorph uses id attributes for stable identity
+              // If both nodes have ids and they match, morph them
+              if (fromNode.id && toNode.id) {
+                return fromNode.id === toNode.id;
               }
               return true;
             },

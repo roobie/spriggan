@@ -216,7 +216,11 @@
 
       function renderTodo(todo, dispatch) {
         return html`
-          <div class="todo ${todo.done ? "done" : ""}" data-key="${todo.id}" id="todo-${todo.id}">
+          <div
+            class="todo ${todo.done ? "done" : ""}"
+            data-key="${todo.id}"
+            id="todo-${todo.id}"
+          >
             <input
               type="checkbox"
               ${todo.done ? "checked" : ""}
@@ -285,7 +289,7 @@
         init,
         update,
         view,
-        debug: location.href.includes('localhost'), // Enable debug mode
+        debug: location.href.includes("localhost"), // Enable debug mode
         subscriptions: (dispatch) => {
           // Load todos on startup
           dispatch({ type: "LoadTodos" });
