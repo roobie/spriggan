@@ -1,4 +1,3 @@
-````markdown
 # 🌿 Spriggan
 
 **A tiny, elegant framework inspired by The Elm Architecture—no build tools, pure functions, built for humans and LLMs alike.**
@@ -21,7 +20,6 @@
   });
 </script>
 ```
-````
 
 **That's it. No compilation. No configuration. Just functions and data.**
 
@@ -448,7 +446,7 @@ ${items.map(item => html`
 This enables efficient DOM diffing when using [Idiomorph](https://github.com/bigskysoftware/idiomorph):
 
 ```html
-<script src="https://unpkg.com/idiomorph@0.3.0/dist/idiomorph.min.js"></script>
+<script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
 <script src="https://unpkg.com/spriggan/dist/spriggan.min.js"></script>
 ```
 
@@ -1378,7 +1376,7 @@ function renderPayment(state, dispatch) {
 ### 1. Use Idiomorph for Efficient DOM Updates
 
 ```html
-<script src="https://unpkg.com/idiomorph@0.3.0/dist/idiomorph.min.js"></script>
+<script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
 ```
 
 Idiomorph morphs the DOM instead of replacing it, preserving:
