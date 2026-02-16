@@ -809,82 +809,81 @@ describe("Spriggan Framework", () => {
       );
     });
   });
-    it("should execute custom function and dispatch onComplete", () => {
-      document.body.innerHTML = '<div id="app"></div>';
+  it("should execute custom function and dispatch onComplete", () => {
+    document.body.innerHTML = '<div id="app"></div>';
 
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ result: null }),
-        update: (state, msg) => {
-          if (msg.type === "RunFn") {
-            return [
-              state,
-              {
-                type: "fn",
-                run: () => 42,
-                onComplete: "FnComplete",
+    const appApi = Spriggan.app("#app", {
+      init: () => ({ result: null }),
+      update: (state, msg) => {
+        if (msg.type === "RunFn") {
+          return [
+            state,
+            {
+              type: "fn",
+              run: () => 42,
+              onComplete: "FnComplete",
+            },
+          ];
+        }
+        if (msg.type === "FnComplete") {
+          return { result: msg.result };
+        }
+        return state;
+      },
+      view: () => "",
+    });
+
+    appApi.dispatch({ type: "RunFn" });
+    expect(appApi.getState()).toEqual({ result: 42 });
+  });
+
+  it("should handle function errors gracefully", () => {
+    document.body.innerHTML = '<div id="app"></div>';
+
+    const appApi = Spriggan.app("#app", {
+      init: () => ({ result: null }),
+      update: (state, msg) => {
+        if (msg.type === "RunFn") {
+          return [
+            state,
+            {
+              type: "fn",
+              run: () => {
+                throw new Error("Function error");
               },
-            ];
-          }
-          if (msg.type === "FnComplete") {
-            return { result: msg.result };
-          }
-          return state;
-        },
-        view: () => "",
-      });
-
-      appApi.dispatch({ type: "RunFn" });
-      expect(appApi.getState()).toEqual({ result: 42 });
+            },
+          ];
+        }
+        return state;
+      },
+      view: () => "",
     });
 
-    it("should handle function errors gracefully", () => {
-      document.body.innerHTML = '<div id="app"></div>';
+    appApi.dispatch({ type: "RunFn" });
+    expect(console.error).toHaveBeenCalledWith(
+      "Spriggan: fn effect failed",
+      expect.any(Error),
+    );
+  });
 
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ result: null }),
-        update: (state, msg) => {
-          if (msg.type === "RunFn") {
-            return [
-              state,
-              {
-                type: "fn",
-                run: () => {
-                  throw new Error("Function error");
-                },
-              },
-            ];
-          }
-          return state;
-        },
-        view: () => "",
-      });
+  it("should warn if run is not a function", () => {
+    document.body.innerHTML = '<div id="app"></div>';
 
-      appApi.dispatch({ type: "RunFn" });
-      expect(console.error).toHaveBeenCalledWith(
-        "Spriggan: fn effect failed",
-        expect.any(Error),
-      );
+    const appApi = Spriggan.app("#app", {
+      init: () => ({}),
+      update: (state, msg) => {
+        if (msg.type === "RunFn") {
+          return [state, { type: "fn", run: "not a function" }];
+        }
+        return state;
+      },
+      view: () => "",
     });
 
-    it("should warn if run is not a function", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({}),
-        update: (state, msg) => {
-          if (msg.type === "RunFn") {
-            return [state, { type: "fn", run: "not a function" }];
-          }
-          return state;
-        },
-        view: () => "",
-      });
-
-      appApi.dispatch({ type: "RunFn" });
-      expect(console.warn).toHaveBeenCalledWith(
-        "Spriggan: fn effect requires run property to be a function",
-      );
-    });
+    appApi.dispatch({ type: "RunFn" });
+    expect(console.warn).toHaveBeenCalledWith(
+      "Spriggan: fn effect requires run property to be a function",
+    );
   });
 
   describe("storage effect - remove action", () => {
@@ -917,163 +916,162 @@ describe("Spriggan Framework", () => {
       expect(localStorageMock.removeItem).toHaveBeenCalledWith("testKey");
       expect(appApi.getState()).toEqual({ removed: true });
     });
-  });
 
-  describe("delay effect edge cases", () => {
-    it("should warn if delay effect has no msg property", () => {
-      document.body.innerHTML = '<div id="app"></div>';
+    describe("delay effect edge cases", () => {
+      it("should warn if delay effect has no msg property", () => {
+        document.body.innerHTML = '<div id="app"></div>';
 
-      const appApi = Spriggan.app("#app", {
-        init: () => ({}),
-        update: (state, msg) => {
-          if (msg.type === "Delay") {
-            return [state, { type: "delay", ms: 100 }];
-          }
-          return state;
-        },
-        view: () => "",
-      });
-
-      appApi.dispatch({ type: "Delay" });
-      expect(console.warn).toHaveBeenCalledWith(
-        "Spriggan: delay effect requires msg property",
-      );
-    });
-  });
-
-  describe("unknown effect type", () => {
-    it("should warn on unknown effect type", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({}),
-        update: (state, msg) => {
-          if (msg.type === "Trigger") {
-            return [state, { type: "unknownEffect" }];
-          }
-          return state;
-        },
-        view: () => "",
-      });
-
-      appApi.dispatch({ type: "Trigger" });
-      expect(console.warn).toHaveBeenCalledWith(
-        'Spriggan: unknown effect type "unknownEffect"',
-      );
-    });
-  });
-
-  describe("effect error sandboxing", () => {
-    it("should catch errors in effect handlers and not crash the app", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ count: 0 }),
-        update: (state, msg) => {
-          if (msg.type === "Trigger") {
-            return [{ count: state.count + 1 }, { type: "crashy" }];
-          }
-          if (msg.type === "Continue") {
-            return { count: state.count + 100 };
-          }
-          return state;
-        },
-        view: () => "",
-        effects: {
-          crashy: () => {
-            throw new Error("Effect crashed!");
+        const appApi = Spriggan.app("#app", {
+          init: () => ({}),
+          update: (state, msg) => {
+            if (msg.type === "Delay") {
+              return [state, { type: "delay", ms: 100 }];
+            }
+            return state;
           },
-        },
-      });
+          view: () => "",
+        });
 
-      expect(() => {
+        appApi.dispatch({ type: "Delay" });
+        expect(console.warn).toHaveBeenCalledWith(
+          "Spriggan: delay effect requires msg property",
+        );
+      });
+    });
+
+    describe("unknown effect type", () => {
+      it("should warn on unknown effect type", () => {
+        document.body.innerHTML = '<div id="app"></div>';
+
+        const appApi = Spriggan.app("#app", {
+          init: () => ({}),
+          update: (state, msg) => {
+            if (msg.type === "Trigger") {
+              return [state, { type: "unknownEffect" }];
+            }
+            return state;
+          },
+          view: () => "",
+        });
+
         appApi.dispatch({ type: "Trigger" });
-      }).not.toThrow();
-
-      expect(console.error).toHaveBeenCalledWith(
-        'Spriggan: effect handler "crashy" threw an error',
-        expect.any(Error),
-      );
-
-      expect(appApi.getState()).toEqual({ count: 1 });
-
-      appApi.dispatch({ type: "Continue" });
-      expect(appApi.getState()).toEqual({ count: 101 });
+        expect(console.warn).toHaveBeenCalledWith(
+          'Spriggan: unknown effect type "unknownEffect"',
+        );
+      });
     });
-  });
 
-  describe("multiple effects", () => {
-    it("should process multiple effects from a single update", () => {
-      document.body.innerHTML = '<div id="app"></div>';
+    describe("effect error sandboxing", () => {
+      it("should catch errors in effect handlers and not crash the app", () => {
+        document.body.innerHTML = '<div id="app"></div>';
 
-      vi.useFakeTimers();
+        const appApi = Spriggan.app("#app", {
+          init: () => ({ count: 0 }),
+          update: (state, msg) => {
+            if (msg.type === "Trigger") {
+              return [{ count: state.count + 1 }, { type: "crashy" }];
+            }
+            if (msg.type === "Continue") {
+              return { count: state.count + 100 };
+            }
+            return state;
+          },
+          view: () => "",
+          effects: {
+            crashy: () => {
+              throw new Error("Effect crashed!");
+            },
+          },
+        });
 
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ count: 0, delayed: false }),
-        update: (state, msg) => {
-          if (msg.type === "Trigger") {
-            return [
-              { ...state, count: state.count + 1 },
-              { type: "delay", ms: 100, msg: { type: "Delayed" } },
-              { type: "delay", ms: 200, msg: { type: "Delayed2" } },
-            ];
-          }
-          if (msg.type === "Delayed") {
-            return { ...state, delayed: true };
-          }
-          if (msg.type === "Delayed2") {
-            return { ...state, delayed: true, count: state.count + 10 };
-          }
-          return state;
-        },
-        view: () => "",
+        expect(() => {
+          appApi.dispatch({ type: "Trigger" });
+        }).not.toThrow();
+
+        expect(console.error).toHaveBeenCalledWith(
+          'Spriggan: effect handler "crashy" threw an error',
+          expect.any(Error),
+        );
+
+        expect(appApi.getState()).toEqual({ count: 1 });
+
+        appApi.dispatch({ type: "Continue" });
+        expect(appApi.getState()).toEqual({ count: 101 });
+      });
+    });
+
+    describe("multiple effects", () => {
+      it("should process multiple effects from a single update", () => {
+        document.body.innerHTML = '<div id="app"></div>';
+
+        vi.useFakeTimers();
+
+        const appApi = Spriggan.app("#app", {
+          init: () => ({ count: 0, delayed: false }),
+          update: (state, msg) => {
+            if (msg.type === "Trigger") {
+              return [
+                { ...state, count: state.count + 1 },
+                { type: "delay", ms: 100, msg: { type: "Delayed" } },
+                { type: "delay", ms: 200, msg: { type: "Delayed2" } },
+              ];
+            }
+            if (msg.type === "Delayed") {
+              return { ...state, delayed: true };
+            }
+            if (msg.type === "Delayed2") {
+              return { ...state, delayed: true, count: state.count + 10 };
+            }
+            return state;
+          },
+          view: () => "",
+        });
+
+        appApi.dispatch({ type: "Trigger" });
+        expect(appApi.getState()).toEqual({ count: 1, delayed: false });
+
+        vi.advanceTimersByTime(100);
+        expect(appApi.getState()).toEqual({ count: 1, delayed: true });
+
+        vi.advanceTimersByTime(100);
+        expect(appApi.getState()).toEqual({ count: 11, delayed: true });
+
+        vi.useRealTimers();
       });
 
-      appApi.dispatch({ type: "Trigger" });
-      expect(appApi.getState()).toEqual({ count: 1, delayed: false });
+      it("should skip null/undefined effects in array", () => {
+        document.body.innerHTML = '<div id="app"></div>';
 
-      vi.advanceTimersByTime(100);
-      expect(appApi.getState()).toEqual({ count: 1, delayed: true });
+        vi.useFakeTimers();
 
-      vi.advanceTimersByTime(100);
-      expect(appApi.getState()).toEqual({ count: 11, delayed: true });
+        const appApi = Spriggan.app("#app", {
+          init: () => ({ count: 0 }),
+          update: (state, msg) => {
+            if (msg.type === "Trigger") {
+              return [
+                { count: state.count + 1 },
+                null,
+                { type: "delay", ms: 10, msg: { type: "Delayed" } },
+                undefined,
+              ];
+            }
+            if (msg.type === "Delayed") {
+              return { count: state.count + 100 };
+            }
+            return state;
+          },
+          view: () => "",
+        });
 
-      vi.useRealTimers();
-    });
+        appApi.dispatch({ type: "Trigger" });
+        expect(appApi.getState()).toEqual({ count: 1 });
 
-    it("should skip null/undefined effects in array", () => {
-      document.body.innerHTML = '<div id="app"></div>';
+        vi.advanceTimersByTime(10);
+        expect(appApi.getState()).toEqual({ count: 101 });
 
-      vi.useFakeTimers();
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ count: 0 }),
-        update: (state, msg) => {
-          if (msg.type === "Trigger") {
-            return [
-              { count: state.count + 1 },
-              null,
-              { type: "delay", ms: 10, msg: { type: "Delayed" } },
-              undefined,
-            ];
-          }
-          if (msg.type === "Delayed") {
-            return { count: state.count + 100 };
-          }
-          return state;
-        },
-        view: () => "",
+        vi.useRealTimers();
       });
-
-      appApi.dispatch({ type: "Trigger" });
-      expect(appApi.getState()).toEqual({ count: 1 });
-
-      vi.advanceTimersByTime(10);
-      expect(appApi.getState()).toEqual({ count: 101 });
-
-      vi.useRealTimers();
     });
-  });
     it("should process multiple effects from a single update", () => {
       document.body.innerHTML = '<div id="app"></div>';
 
