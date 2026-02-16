@@ -6,6 +6,9 @@ watchexec = "2"
 depends = "tidy"
 run = "uvx python -m http.server"
 
+[tasks.install-deps]
+run = "bun install"
+
 [tasks.fmt]
 run = "bunx biome format --write"
 
@@ -26,6 +29,7 @@ depends = [
 [tasks.check]
 run = "bunx tsc --noEmit"
 depends = [
+    "install-deps",
     "tidy",
     "lint"
 ]
