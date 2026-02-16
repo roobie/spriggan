@@ -1,4 +1,4 @@
-import createSpriggan from "@src/spriggan.js";
+import createSpriggan from "../src/spriggan.js";
 
 const { app, html } = createSpriggan();
 

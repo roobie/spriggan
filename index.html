@@ -40,7 +40,7 @@
       }
 
       .quote {
-        background: var(--gray-1);
+        background: var(--gray-8);
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
@@ -55,7 +55,7 @@
       }
 
       .stat {
-        background: var(--blue-1);
+        background: var(--purple-12);
         padding: 1rem;
         border-radius: 0.5rem;
         text-align: center;
@@ -72,10 +72,13 @@
     </footer>
 
     <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
+    <script src="https://unpkg.com/showdown@2.1.0/dist/showdown.min.js"></script>
     <script type="module">
       import createSpriggan, { html } from "./src/spriggan.js";
 
       const { app } = createSpriggan();
+
+      const converter = new showdown.Converter();
 
       // ========================================================================
       // Model
@@ -237,7 +240,7 @@
               { ...state, loading: true, error: null },
               {
                 type: "http",
-                url: "https://jsonplaceholder.typicode.com/posts/1",
+                url: "./examples/message-debug.md",
                 onSuccess: "QuoteFetched",
                 onError: "QuoteError",
               },
@@ -312,9 +315,8 @@
 
         return html`
           <div class="quote">
-            <strong>${state.quote.title}</strong><br />
-            ${state.quote.body}
-            <br /><small>— JSONPlaceholder Post</small> <br /><small
+            ${converter.makeHtml(state.quote)}
+            <br /><small>— Stylish</small> <br /><small
               ><button data-msg=${{ type: "FetchQuote" }}>
                 New Post
               </button></small

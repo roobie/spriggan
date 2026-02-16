@@ -254,6 +254,10 @@ describe("Spriggan Framework", () => {
       global.fetch.mockImplementation(() =>
         Promise.resolve({
           ok: true,
+          headers: {
+            get: (name) =>
+              name === "Content-Type" ? "application/json" : null,
+          },
           json: () => ({ data: "test" }),
         }),
       );
@@ -311,7 +315,7 @@ describe("Spriggan Framework", () => {
             ];
           }
           if (msg.type === "FetchError") {
-            return { error: msg.error };
+            return { error: msg.error.message };
           }
           return state;
         },
@@ -1334,7 +1338,7 @@ describe("Spriggan Framework", () => {
             ];
           }
           if (msg.type === "FetchError") {
-            return { error: msg.error };
+            return { error: msg.error.message };
           }
           return state;
         },

@@ -332,7 +332,13 @@ export default function createSpriggan() {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
-          return response.json();
+          if (
+            response.headers.get("Content-Type")?.includes("application/json")
+          ) {
+            return response.json();
+          }
+
+          return response.text();
         })
         .then((data) => {
           if (onSuccess) {
@@ -341,7 +347,10 @@ export default function createSpriggan() {
         })
         .catch((err) => {
           if (onError) {
-            dispatch({ type: onError, error: err.message });
+            dispatch({
+              type: onError,
+              error: err,
+            });
           }
         });
     },
