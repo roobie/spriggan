@@ -27,7 +27,7 @@
     <div id="app"></div>
 
     <!-- Include idiomorph for efficient DOM diffing -->
-    <script src="https://unpkg.com/idiomorph@0.3.0/dist/idiomorph.min.js"></script>
+    <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
     //
     <!-- Include Spriggan -->
     <script src="../src/spriggan.js"></script>
@@ -216,7 +216,7 @@
 
       function renderTodo(todo, dispatch) {
         return html`
-          <div class="todo ${todo.done ? "done" : ""}" data-key="${todo.id}">
+          <div class="todo ${todo.done ? "done" : ""}" data-key="${todo.id}" id="todo-${todo.id}">
             <input
               type="checkbox"
               ${todo.done ? "checked" : ""}
@@ -285,7 +285,7 @@
         init,
         update,
         view,
-        debug: false, // location.href.includes('localhost'), // Enable debug mode
+        debug: location.href.includes('localhost'), // Enable debug mode
         subscriptions: (dispatch) => {
           // Load todos on startup
           dispatch({ type: "LoadTodos" });
