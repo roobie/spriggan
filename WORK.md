@@ -19,13 +19,9 @@ Event listeners are now stored in `boundEventHandlers` and properly removed via 
 
 Framework now uses a `closure()` factory function. Each call to `Spriggan()` returns a fresh instance with its own isolated state.
 
-### 3) Debug mode assumes object state
+### 3) ~~Debug mode assumes object state~~ ✅ FIXED
 
-`stateDiff(oldState, newState)` assumes both are objects; if `init` returns `null` or a primitive, debug mode may throw.
-
-**Impact:** debug mode crashes for non-object state models.
-
-**Status:** Partially mitigated - tests exist but `stateDiff` still iterates without checking types.
+`stateDiff(oldState, newState)` now guards for non-object states. If either state is not an object (primitives, null, undefined), it reports a simple value change instead of iterating.
 
 ### 4) ~~No guard for undefined / invalid update returns~~ ✅ MITIGATED
 
@@ -86,11 +82,8 @@ Comprehensive test suite with 81 tests covering:
 
 ## Remaining Improvements
 
-1. **Guard `stateDiff` for non-object states**
-   - Check if states are objects before iterating.
-
-2. **Protect effect handlers with try/catch**
+1. **Protect effect handlers with try/catch**
    - Wrap handler calls in `defaultEffectRunner` to prevent app crashes.
 
-3. **Document XSS / escaping clearly**
+2. **Document XSS / escaping clearly**
    - Add a prominent note that `html()` doesn't escape.

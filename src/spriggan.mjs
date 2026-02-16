@@ -447,6 +447,22 @@ export default function createSpriggan() {
   function stateDiff(oldState, newState) {
     const changes = [];
 
+    if (
+      typeof oldState !== "object" ||
+      oldState === null ||
+      typeof newState !== "object" ||
+      newState === null
+    ) {
+      if (oldState !== newState) {
+        changes.push({
+          key: "(value)",
+          from: oldState,
+          to: newState,
+        });
+      }
+      return changes;
+    }
+
     for (const key in newState) {
       if (oldState[key] !== newState[key]) {
         changes.push({
