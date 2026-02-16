@@ -7,13 +7,25 @@ depends = "tidy"
 run = "uvx python -m http.server"
 
 [tasks.fmt]
-run = "bunx prettier . -w"
+run = "bunx biome format --write"
 
 [tasks.test]
 run = "bunx vitest run --environment jsdom --reporter verbose"
 
+[tasks.lint]
+run = "bunx biome lint"
+
 [tasks.tidy]
+run = "bunx biome check --write"
 depends = [
-"fmt",
-"test"
+    "fmt",
+    "test",
+    "lint"
+]
+
+[tasks.check]
+run = "bunx tsc --noEmit"
+depends = [
+    "tidy",
+    "lint"
 ]

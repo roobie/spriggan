@@ -44,7 +44,7 @@ export function html(strings, ...values) {
  */
 export default function createSpriggan() {
   let currentState = null;
-  let currentView = null;
+  let _currentView = null;
   let rootElement = null;
   let updateFn = null;
   let viewFn = null;
@@ -107,7 +107,7 @@ export default function createSpriggan() {
       dispatch,
       getState: () => currentState,
       destroy: () => {
-        cleanupFns.forEach((fn) => fn());
+        cleanupFns.forEach((fn) => void fn());
 
         detachEventListeners(rootElement);
 
@@ -116,7 +116,7 @@ export default function createSpriggan() {
         }
 
         currentState = null;
-        currentView = null;
+        _currentView = null;
         rootElement = null;
         updateFn = null;
         viewFn = null;
@@ -202,7 +202,7 @@ export default function createSpriggan() {
       attachEventListeners(rootElement);
     }
 
-    currentView = newView;
+    _currentView = newView;
 
     if (isDebugMode) {
       const endTime = performance.now();
@@ -294,7 +294,14 @@ export default function createSpriggan() {
       return;
     }
 
-    handler(effect, dispatch);
+    try {
+      handler(effect, dispatch);
+    } catch (err) {
+      console.error(
+        `Spriggan: effect handler "${effect.type}" threw an error`,
+        err,
+      );
+    }
   }
 
   const defaultEffects = {
@@ -409,6 +416,12 @@ export default function createSpriggan() {
       const result = updateFn(state, msg);
       const newState = Array.isArray(result) ? result[0] : result;
       const effects = Array.isArray(result) ? result.slice(1) : [];
+
+      if (result === undefined) {
+        console.warn(
+          "[Spriggan] update() returned undefined - this may be unintentional",
+        );
+      }
 
       console.log("New state:", newState);
 

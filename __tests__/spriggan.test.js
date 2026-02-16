@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fc from "fast-check";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 global.fetch = vi.fn();
 
@@ -238,11 +238,11 @@ describe("Spriggan Framework", () => {
   });
 
   describe("effects system", () => {
-    let dispatchMock;
-    let handlers;
+    let _dispatchMock;
+    let _handlers;
 
     beforeEach(() => {
-      dispatchMock = vi.fn();
+      _dispatchMock = vi.fn();
       // Get the default effects from the module
       // Since they're internal, we'll test the effect runner directly
       // For now, test via app dispatch
@@ -543,7 +543,7 @@ describe("Spriggan Framework", () => {
 
       const appApi = Spriggan.app("#app", {
         init: () => ({ count: 0 }),
-        update: (state, msg) => ({ count: state.count + 1 }),
+        update: (state, _msg) => ({ count: state.count + 1 }),
         view: () => "",
         debug: true,
       });
@@ -560,7 +560,7 @@ describe("Spriggan Framework", () => {
 
       const appApi = Spriggan.app("#app", {
         init: () => ({ count: 0 }),
-        update: (state, msg) => ({ count: state.count + 1 }),
+        update: (state, _msg) => ({ count: state.count + 1 }),
         view: () => "",
         debug: true,
       });
@@ -596,7 +596,7 @@ describe("Spriggan Framework", () => {
 
       const appApi = Spriggan.app("#app", {
         init: () => ({ count: 0 }),
-        update: (state, msg) => ({ count: state.count + 1 }),
+        update: (state, _msg) => ({ count: state.count + 1 }),
         view: () => "",
         debug: true,
       });
@@ -668,7 +668,7 @@ describe("Spriggan Framework", () => {
 
       document.body.innerHTML = '<div id="app"></div>';
 
-      const app2 = Spriggan.app("#app", {
+      const _app2 = Spriggan.app("#app", {
         init: () => ({ count: 0 }),
         update: (state, msg) => {
           if (msg.type === "Inc") {
@@ -1055,6 +1055,45 @@ describe("Spriggan Framework", () => {
     });
   });
 
+  describe("effect error sandboxing", () => {
+    it("should catch errors in effect handlers and not crash the app", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [{ count: state.count + 1 }, { type: "crashy" }];
+          }
+          if (msg.type === "Continue") {
+            return { count: state.count + 100 };
+          }
+          return state;
+        },
+        view: () => "",
+        effects: {
+          crashy: () => {
+            throw new Error("Effect crashed!");
+          },
+        },
+      });
+
+      expect(() => {
+        appApi.dispatch({ type: "Trigger" });
+      }).not.toThrow();
+
+      expect(console.error).toHaveBeenCalledWith(
+        'Spriggan: effect handler "crashy" threw an error',
+        expect.any(Error),
+      );
+
+      expect(appApi.getState()).toEqual({ count: 1 });
+
+      appApi.dispatch({ type: "Continue" });
+      expect(appApi.getState()).toEqual({ count: 101 });
+    });
+  });
+
   describe("multiple effects", () => {
     it("should process multiple effects from a single update", () => {
       document.body.innerHTML = '<div id="app"></div>';
@@ -1195,6 +1234,27 @@ describe("Spriggan Framework", () => {
 
       appApi.dispatch({ type: "Null" });
       expect(appApi.getState()).toBeNull();
+    });
+
+    it("should warn in debug mode when update returns undefined", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Undefined") {
+            return undefined;
+          }
+          return state;
+        },
+        view: () => "",
+        debug: true,
+      });
+
+      appApi.dispatch({ type: "Undefined" });
+      expect(console.warn).toHaveBeenCalledWith(
+        "[Spriggan] update() returned undefined - this may be unintentional",
+      );
     });
   });
 
@@ -1484,7 +1544,7 @@ describe("Spriggan Framework", () => {
 
     it("should always produce empty string for null", () => {
       fc.assert(
-        fc.property(fc.string(), (prefix, suffix) => {
+        fc.property(fc.string(), (prefix, _suffix) => {
           const result = Spriggan.html`${null}${prefix}${null}`;
           return result === prefix;
         }),

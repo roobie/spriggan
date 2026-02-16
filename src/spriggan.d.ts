@@ -100,7 +100,7 @@ type UpdateFunction<T, M extends Message> = (
 type ViewFunction<T, M extends Message> = (
   state: T,
   dispatch: Dispatch<M>,
-) => string | Node | void;
+) => string | Node | undefined;
 
 /**
  * Application API returned from app()
@@ -143,7 +143,7 @@ interface DebugTools<T, M extends Message = Message> {
  */
 type SubscriptionFunction<M extends Message> = (
   dispatch: Dispatch<M>,
-) => CleanupFn | CleanupFn[] | void;
+) => CleanupFn | CleanupFn[] | undefined;
 
 type CleanupFn = () => void;
 
@@ -221,7 +221,7 @@ interface FnEffect extends Effect {
 /**
  * Built-in effect types
  */
-type BuiltInEffect<M extends Message = Message> =
+export type BuiltInEffect<M extends Message = Message> =
   | HttpEffect
   | DelayEffect<M>
   | StorageEffect

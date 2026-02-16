@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Spriggan Task Manager</title>
@@ -73,7 +73,7 @@
 
     <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
     <script type="module">
-      import createSpriggan, { html } from "./src/spriggan.mjs";
+      import createSpriggan, { html } from "./src/spriggan.js";
 
       const { app } = createSpriggan();
 
@@ -142,7 +142,7 @@
               },
             ];
 
-          case "ToggleTask":
+          case "ToggleTask": {
             const updatedTasks = state.tasks.map((task) =>
               task.id === msg.id
                 ? { ...task, completed: !task.completed }
@@ -160,8 +160,9 @@
                 value: updatedTasks,
               },
             ];
+          }
 
-          case "DeleteTask":
+          case "DeleteTask": {
             const filteredTasks = state.tasks.filter(
               (task) => task.id !== msg.id,
             );
@@ -177,19 +178,21 @@
                 value: filteredTasks,
               },
             ];
+          }
 
-          case "StartEdit":
+          case "StartEdit": {
             const taskToEdit = state.tasks.find((t) => t.id === msg.id);
             return {
               ...state,
               editingId: msg.id,
               editText: taskToEdit ? taskToEdit.text : "",
             };
+          }
 
           case "UpdateEdit":
             return { ...state, editText: msg.text };
 
-          case "SaveEdit":
+          case "SaveEdit": {
             if (!state.editText.trim() || state.editingId === null)
               return { ...state, editingId: null, editText: "" };
             const editedTasks = state.tasks.map((task) =>
@@ -211,6 +214,7 @@
                 value: editedTasks,
               },
             ];
+          }
 
           case "CancelEdit":
             return { ...state, editingId: null, editText: "" };
@@ -245,7 +249,7 @@
           case "QuoteError":
             return { ...state, error: msg.error, loading: false };
 
-          case "ClearCompleted":
+          case "ClearCompleted": {
             const activeTasks = state.tasks.filter((task) => !task.completed);
             return [
               {
@@ -259,6 +263,7 @@
                 value: activeTasks,
               },
             ];
+          }
 
           default:
             return state;
@@ -295,7 +300,7 @@
         `;
       }
 
-      function renderQuote(state, dispatch) {
+      function renderQuote(state, _dispatch) {
         if (state.loading)
           return html`<div class="quote">Loading quote...</div>`;
         if (state.error)
@@ -332,7 +337,7 @@
         `;
       }
 
-      function renderFilters(state, dispatch) {
+      function renderFilters(state, _dispatch) {
         return html`
           <div class="filters">
             <button
@@ -357,7 +362,7 @@
         `;
       }
 
-      function renderAddTask(state, dispatch) {
+      function renderAddTask(state, _dispatch) {
         return html`
           <form data-msg=${{ type: "AddTask" }}>
             <input
@@ -391,7 +396,7 @@
         `;
       }
 
-      function renderTask(task, state, dispatch) {
+      function renderTask(task, state, _dispatch) {
         const isEditing = state.editingId === task.id;
 
         return html`

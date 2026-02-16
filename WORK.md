@@ -23,17 +23,15 @@ Framework now uses a `closure()` factory function. Each call to `Spriggan()` ret
 
 `stateDiff(oldState, newState)` now guards for non-object states. If either state is not an object (primitives, null, undefined), it reports a simple value change instead of iterating.
 
-### 4) ~~No guard for undefined / invalid update returns~~ ✅ MITIGATED
+### 4) ~~No guard for undefined / invalid update returns~~ ✅ FIXED
 
-If `update()` returns `undefined`, state becomes `undefined` silently. Tests cover this behavior.
+In debug mode, `update()` returning `undefined` now triggers a warning: `[Spriggan] update() returned undefined - this may be unintentional`.
 
-`view()` returning `undefined` is now handled gracefully in `render()`.
+`view()` returning `undefined` is handled gracefully in `render()`.
 
-### 5) Effects are not sandboxed
+### 5) ~~Effects are not sandboxed~~ ✅ FIXED
 
-If an effect handler throws, it bubbles into render cycle. `defaultEffectRunner` does not catch handler exceptions.
-
-**Impact:** one faulty effect can crash the whole app.
+Effect handlers are now wrapped in try/catch in `defaultEffectRunner`. If an effect throws, the error is logged and the app continues running.
 
 ### 6) HTML template does not escape
 
@@ -51,7 +49,7 @@ If an effect handler throws, it bubbles into render cycle. `defaultEffectRunner`
 
 Only subscriptions provide cleanup; components with their own listeners must manage cleanup manually.
 
-### 3) Stringly-typed effects
+### 3) Stringly-typed effects ✅ MITIGATED (one can pass a Msg object directly, but the usage pattern is not enforced)
 
 Effect types are simple but typo-prone; malformed effect objects are not validated.
 
@@ -61,13 +59,14 @@ Debug tools are now instance-scoped on the app API (`appApi.debug.history`, `app
 
 ## Test Coverage
 
-Comprehensive test suite with 81 tests covering:
+Comprehensive test suite with 83 tests covering:
 
 - `html` tagged template function (including message object stringify)
 - App initialization and config validation
 - Dispatch and state updates
 - All effect types (http, delay, storage, fn)
-- Effect error handling (network errors, unknown types)
+- Effect error handling (network errors, unknown types, sandboxing)
+- Debug mode warnings for undefined update returns
 - DOM event delegation (click, input, change, submit)
 - Debug mode (logging, history, time travel)
 - `destroy()` cleanup (DOM, state, event listeners, subscriptions)
@@ -82,8 +81,5 @@ Comprehensive test suite with 81 tests covering:
 
 ## Remaining Improvements
 
-1. **Protect effect handlers with try/catch**
-   - Wrap handler calls in `defaultEffectRunner` to prevent app crashes.
-
-2. **Document XSS / escaping clearly**
+1. **Document XSS / escaping clearly**
    - Add a prominent note that `html()` doesn't escape.
