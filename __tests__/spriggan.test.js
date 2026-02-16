@@ -82,6 +82,34 @@ describe("Spriggan Framework", () => {
       const result = Spriggan.html`<input${true} />`;
       expect(result).toBe("<input />");
     });
+
+    it("should stringify Message objects with single quotes for HTML attributes", () => {
+      const msg = { type: "increment" };
+      const result = Spriggan.html`<button data-msg=${msg}>Click</button>`;
+      expect(result).toBe(
+        `<button data-msg='{"type":"increment"}'>Click</button>`,
+      );
+    });
+
+    it("should stringify Message objects with additional properties", () => {
+      const msg = { type: "setItem", id: 42, value: "test" };
+      const result = Spriggan.html`<button data-msg=${msg}>Set</button>`;
+      expect(result).toBe(
+        `<button data-msg='{"type":"setItem","id":42,"value":"test"}'>Set</button>`,
+      );
+    });
+
+    it("should not stringify objects without type property", () => {
+      const obj = { name: "test", count: 5 };
+      const result = Spriggan.html`<div data-obj=${obj}>Content</div>`;
+      expect(result).toBe("<div data-obj=[object Object]>Content</div>");
+    });
+
+    it("should not stringify objects with non-string type", () => {
+      const obj = { type: 123 };
+      const result = Spriggan.html`<div data-obj=${obj}>Content</div>`;
+      expect(result).toBe("<div data-obj=[object Object]>Content</div>");
+    });
   });
 
   describe("app initialization", () => {

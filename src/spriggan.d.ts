@@ -3,21 +3,27 @@
  * TypeScript type definitions
  */
 
-declare function Spriggan(): SprigganInstance;
+/**
+ * Create a new Spriggan instance
+ * @returns SprigganInstance with app and html functions
+ */
+declare function createSpriggan(): SprigganInstance;
 
-interface SprigganInstance {
-  app: typeof app;
-  html: typeof html;
-}
+export default createSpriggan;
 
 /**
  * Tagged template literal for HTML generation
  * @example html`<div class="${className}">${content}</div>`
  */
-declare function html(
+export function html(
   strings: TemplateStringsArray,
   ...values: HtmlValue[]
 ): string;
+
+interface SprigganInstance {
+  app: typeof app;
+  html: typeof html;
+}
 
 type HtmlValue =
   | string
@@ -26,7 +32,8 @@ type HtmlValue =
   | null
   | undefined
   | HtmlValue[]
-  | (() => HtmlValue);
+  | (() => HtmlValue)
+  | Message;
 
 /**
  * Initialize a Spriggan application
@@ -201,7 +208,7 @@ type BuiltInEffect<M extends Message = Message> =
 // ============================================================================
 
 /**
- * Debug tools available on window.__SPRIGGAN_DEBUG__ when debug mode is enabled
+ * Debug tools available on globalThis.__SPRIGGAN_DEBUG__ when debug mode is enabled
  */
 interface SprigganDebugTools<T> {
   /** Get current state */
@@ -225,10 +232,5 @@ interface SprigganDebugTools<T> {
 }
 
 declare global {
-  interface Window {
-    __SPRIGGAN_DEBUG__?: SprigganDebugTools<unknown>;
-  }
+  var __SPRIGGAN_DEBUG__: SprigganDebugTools<unknown> | undefined;
 }
-
-export = Spriggan;
-export as namespace Spriggan;

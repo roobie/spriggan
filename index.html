@@ -72,10 +72,10 @@
     </footer>
 
     <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
-    <script src="./src/spriggan.js"></script>
+    <script type="module">
+      import createSpriggan, { html } from "./src/spriggan.js";
 
-    <script>
-      const { app, html } = Spriggan();
+      const { app } = createSpriggan();
 
       // ========================================================================
       // Model
