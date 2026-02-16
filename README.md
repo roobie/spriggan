@@ -1816,4 +1816,3 @@ Or via CDN:
 <p align="center">
   <strong>Built with ❤️ for the web platform</strong>
 </p>
-```
