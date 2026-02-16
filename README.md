@@ -76,17 +76,23 @@ Spriggan brings this elegance to JavaScript without the compilation step.
 
 ### Installation
 
+# TODO
+
 **Via CDN:**
 
 ```html
 <script src="https://unpkg.com/spriggan/dist/spriggan.min.js"></script>
 ```
 
+# TODO
+
 **Via npm:**
 
 ```bash
 npm install spriggan
 ```
+
+# TODO
 
 ```javascript
 import { app, html } from "spriggan";
@@ -104,7 +110,7 @@ import { app, html } from "spriggan";
   <body>
     <div id="app"></div>
 
-    <script src="https://unpkg.com/spriggan/dist/spriggan.min.js"></script>
+    <script src="spriggan.js"></script>
     <script>
       const { app, html } = Spriggan;
 
