@@ -1817,18 +1817,3 @@ Or via CDN:
   <strong>Built with ❤️ for the web platform</strong>
 </p>
 ```
-
----
-
-This README provides:
-
-✅ **Clear elevator pitch** – Explains what Spriggan is in 30 seconds
-✅ **Strong rationale** – Why it exists and what problems it solves
-✅ **Progressive examples** – From simple counter to complex patterns
-✅ **Complete API docs** – Every function, parameter, and option documented
-✅ **Real-world patterns** – Forms, loading states, routing, auth
-✅ **Comparison table** – Helps users decide if Spriggan fits their needs
-✅ **FAQ section** – Answers common questions
-✅ **Credits & license** – Proper attribution and Apache 2.0 license
-
-The tone is friendly, practical, and emphasizes simplicity without being preachy. It positions Spriggan as a tool for people who want to build without the complexity tax of modern frameworks.
