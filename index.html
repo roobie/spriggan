@@ -16,28 +16,19 @@
 
       body {
         font-family: var(--font-sans);
+        background: var(--gray-13);
+        color: var(--gray-1);
       }
 
       .task-item {
         display: grid;
         grid-template-columns: auto 1fr auto;
-        align-items: center;
         gap: 1rem;
+        border: 1px solid var(--gray-6);
         padding: 0.75rem 1rem;
-        border: 1px solid var(--gray-3);
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
-        list-style: none;
-      }
-
-      .task-item .task-text {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
 
       .task-item .task-actions {
-        display: flex;
         gap: 0.5rem;
         opacity: 0;
         transition: opacity 0.2s ease;
@@ -48,10 +39,21 @@
         opacity: 1;
       }
 
-      .task-item .task-actions button {
-        margin: 0;
+      *:focus {
+        box-shadow: 0 0 1rem 0.2rem var(--blue-9);
+      }
+      button:active {
+        box-shadow: 0 0 1rem 0.2rem var(--orange-9);
+      }
+
+      button {
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
+        background: var(--gray-10);
+        color: var(--gray-1);
+        border: none;
+        margin: 0.3rem;
+        border: 2px outset var(--orange-12);
       }
 
       .task-item.completed .task-text {
@@ -76,63 +78,46 @@
       }
 
       .modal-overlay {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
       }
 
       .modal-backdrop {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.7);
       }
 
       .modal-content {
-        position: relative;
-        z-index: 1;
         background: var(--gray-12);
         color: var(--gray-1);
-        padding: 1.5rem;
-        border-radius: 0.75rem;
         min-width: 300px;
         max-width: 90vw;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-      }
-
-      .modal-content h3 {
-        margin-top: 0;
-        margin-bottom: 1rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
       }
 
       .modal-content input[type="text"] {
-        width: 100%;
-        margin-bottom: 1rem;
       }
 
       .modal-actions {
-        display: flex;
         gap: 0.5rem;
-        justify-content: flex-end;
       }
 
       .modal-actions button {
-        margin: 0;
+        background: var(--gray-7);
+        color: var(--gray-1);
       }
 
       .filters {
-        display: flex;
-        gap: 1rem;
-        margin: 1rem 0;
+      }
+
+      .filters button {
+        background: var(--gray-7);
+        color: var(--gray-1);
+      }
+
+      .filters button.secondary {
+        background: var(--gray-12);
       }
 
       .quote {
-        background: var(--gray-8);
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
+        background: var(--blue-9);
         font-style: italic;
       }
 
@@ -144,10 +129,7 @@
       }
 
       .stat {
-        background: var(--purple-12);
-        padding: 1rem;
-        border-radius: 0.5rem;
-        text-align: center;
+        background: var(--orange-9);
       }
     </style>
   </head>
@@ -395,16 +377,20 @@
 
       function renderQuote(state, _dispatch) {
         if (state.loading)
-          return html`<div class="quote">Loading quote...</div>`;
+          return html`<div class="quote bg-gray p2 rounded my2 italic">
+            Loading quote...
+          </div>`;
         if (state.error)
-          return html`<div class="quote">Error: ${state.error}</div>`;
+          return html`<div class="quote bg-gray p2 rounded my2 italic">
+            Error: ${state.error}
+          </div>`;
         if (!state.quote)
-          return html`<div class="quote">
+          return html`<div class="quote bg-gray p2 rounded my2 italic">
             <button data-msg=${{ type: "FetchQuote" }}>Get Inspiration</button>
           </div>`;
 
         return html`
-          <div class="quote">
+          <div class="quote bg-gray p2 rounded my2 italic">
             ${converter.makeHtml(state.quote)}
             <br /><small>— Stylish</small> <br /><small
               ><button data-msg=${{ type: "FetchQuote" }}>
@@ -422,16 +408,22 @@
 
         return html`
           <div class="stats">
-            <div class="stat"><strong>${total}</strong><br />Total Tasks</div>
-            <div class="stat"><strong>${active}</strong><br />Active</div>
-            <div class="stat"><strong>${completed}</strong><br />Completed</div>
+            <div class="stat bg-black p2 rounded center">
+              <strong>${total}</strong><br />Total Tasks
+            </div>
+            <div class="stat bg-black p2 rounded center">
+              <strong>${active}</strong><br />Active
+            </div>
+            <div class="stat bg-black p2 rounded center">
+              <strong>${completed}</strong><br />Completed
+            </div>
           </div>
         `;
       }
 
       function renderFilters(state, _dispatch) {
         return html`
-          <div class="filters">
+          <div class="filters flex mx2 my2">
             <button
               data-msg=${{ type: "SetFilter", filter: "all" }}
               class="${state.filter === "all" ? "secondary" : ""}"
@@ -492,7 +484,11 @@
         const _isEditing = state.editingId === task.id;
 
         return html`
-          <li class="task-item ${task.completed ? "completed" : ""}">
+          <li
+            class="task-item ${task.completed
+              ? "completed"
+              : ""} items-center p1 border rounded my1 list-style-none"
+          >
             <input
               type="checkbox"
               class="checkbox"
@@ -500,8 +496,8 @@
               ${task.completed ? "checked" : ""}
             />
 
-            <span class="task-text">${task.text}</span>
-            <div class="task-actions">
+            <span class="task-text truncate">${task.text}</span>
+            <div class="task-actions flex">
               <button data-msg=${{ type: "StartEdit", id: task.id }}>
                 Edit
               </button>
@@ -520,22 +516,27 @@
         if (!task) return "";
 
         return html`
-          <div class="modal-overlay">
+          <div
+            class="modal-overlay fixed top-0 right-0 bottom-0 left-0 flex items-center justify-center z4"
+          >
             <div
-              class="modal-backdrop"
+              class="modal-backdrop absolute top-0 right-0 bottom-0 left-0"
               data-msg=${{ type: "CancelEdit" }}
             ></div>
-            <div class="modal-content">
-              <h3>Edit Task</h3>
+            <div class="modal-content relative z1 p3 rounded max-width-4">
+              <h3 class="mt0 mb2">Edit Task</h3>
               <input
                 type="text"
+                class="col-12 mb2"
                 data-model="editText"
                 value="${state.editText}"
                 autofocus
               />
-              <div class="modal-actions">
-                <button data-msg=${{ type: "CancelEdit" }}>Cancel</button>
-                <button data-msg=${{ type: "SaveEdit" }} class="secondary">
+              <div class="modal-actions flex justify-end mx1">
+                <button data-msg=${{ type: "CancelEdit" }} class="m0">
+                  Cancel
+                </button>
+                <button data-msg=${{ type: "SaveEdit" }} class="secondary m0">
                   Save
                 </button>
               </div>
@@ -582,6 +583,19 @@
           };
           loadTasks();
 
+          // Focus modal input when modal opens
+          const focusModalInput = () => {
+            const input = document.querySelector(
+              '.modal-content input[data-model="editText"]',
+            );
+            if (input) input.focus();
+          };
+          const observer = new MutationObserver(focusModalInput);
+          observer.observe(document.getElementById("app"), {
+            childList: true,
+            subtree: true,
+          });
+
           // Keyboard shortcuts
           const handleKeydown = (e) => {
             if (e.target.tagName === "INPUT") return; // Don't interfere with input
@@ -597,6 +611,7 @@
           // Cleanup
           return () => {
             document.removeEventListener("keydown", handleKeydown);
+            observer.disconnect();
           };
         },
       });

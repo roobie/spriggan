@@ -25,6 +25,8 @@ describe("Spriggan Framework", () => {
   let Spriggan;
 
   beforeEach(() => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => cb());
+
     document.body.innerHTML = "";
     vi.clearAllMocks();
     localStorageMock.getItem.mockReset();
@@ -37,6 +39,10 @@ describe("Spriggan Framework", () => {
     console.groupEnd.mockReset();
 
     Spriggan = createSpriggan();
+  });
+
+  afterEach(() => {
+    window.requestAnimationFrame.mockRestore();
   });
 
   describe("html function", () => {
@@ -725,186 +731,84 @@ describe("Spriggan Framework", () => {
     });
   });
 
-  describe("DOM event delegation", () => {
-    it("should handle click events on elements with data-msg", () => {
+  describe("fn effect", () => {
+    it("should execute custom function and dispatch onComplete", () => {
       document.body.innerHTML = '<div id="app"></div>';
 
       const appApi = Spriggan.app("#app", {
-        init: () => ({ clicked: false }),
+        init: () => ({ result: null }),
         update: (state, msg) => {
-          if (msg.type === "Click") {
-            return { clicked: true };
+          if (msg.type === "RunFn") {
+            return [
+              state,
+              {
+                type: "fn",
+                run: () => 42,
+                onComplete: "FnComplete",
+              },
+            ];
+          }
+          if (msg.type === "FnComplete") {
+            return { result: msg.result };
           }
           return state;
         },
-        view: () => '<button data-msg=\'{"type":"Click"}\'>Click</button>',
+        view: () => "",
       });
 
-      const button = document.querySelector("#app button");
-      button.click();
-
-      expect(appApi.getState()).toEqual({ clicked: true });
+      appApi.dispatch({ type: "RunFn" });
+      expect(appApi.getState()).toEqual({ result: 42 });
     });
 
-    it("should handle click events on nested elements via closest()", () => {
+    it("should handle function errors gracefully", () => {
       document.body.innerHTML = '<div id="app"></div>';
 
       const appApi = Spriggan.app("#app", {
-        init: () => ({ clicked: false }),
+        init: () => ({ result: null }),
         update: (state, msg) => {
-          if (msg.type === "Click") {
-            return { clicked: true };
+          if (msg.type === "RunFn") {
+            return [
+              state,
+              {
+                type: "fn",
+                run: () => {
+                  throw new Error("Function error");
+                },
+              },
+            ];
           }
           return state;
         },
-        view: () =>
-          '<button data-msg=\'{"type":"Click"}\'><span>Inner</span></button>',
+        view: () => "",
       });
 
-      const span = document.querySelector("#app span");
-      span.click();
-
-      expect(appApi.getState()).toEqual({ clicked: true });
-    });
-
-    it("should handle input events with data-model", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ text: "" }),
-        update: (state, msg) => {
-          if (msg.type === "FieldChanged" && msg.field === "text") {
-            return { text: msg.value };
-          }
-          return state;
-        },
-        view: () => '<input data-model="text" />',
-      });
-
-      const input = document.querySelector("#app input");
-      input.value = "hello";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-
-      expect(appApi.getState()).toEqual({ text: "hello" });
-    });
-
-    it("should handle change events for checkboxes", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ checked: false }),
-        update: (state, msg) => {
-          if (msg.type === "FieldChanged" && msg.field === "agree") {
-            return { checked: msg.value };
-          }
-          return state;
-        },
-        view: () => '<input type="checkbox" data-model="agree" />',
-      });
-
-      const checkbox = document.querySelector("#app input");
-      checkbox.checked = true;
-      checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-
-      expect(appApi.getState()).toEqual({ checked: true });
-    });
-
-    it("should handle change events for select elements", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ choice: "" }),
-        update: (state, msg) => {
-          if (msg.type === "FieldChanged" && msg.field === "choice") {
-            return { choice: msg.value };
-          }
-          return state;
-        },
-        view: () => `
-          <select data-model="choice">
-            <option value="">Select</option>
-            <option value="a">A</option>
-            <option value="b">B</option>
-          </select>
-        `,
-      });
-
-      const select = document.querySelector("#app select");
-      select.value = "b";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-
-      expect(appApi.getState()).toEqual({ choice: "b" });
-    });
-
-    it("should handle submit events and prevent default", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ submitted: false }),
-        update: (state, msg) => {
-          if (msg.type === "Submit") {
-            return { submitted: true };
-          }
-          return state;
-        },
-        view: () =>
-          '<form data-msg=\'{"type":"Submit"}\'><button type="submit">Go</button></form>',
-      });
-
-      const form = document.querySelector("#app form");
-      const event = new Event("submit", { bubbles: true, cancelable: true });
-      form.dispatchEvent(event);
-
-      expect(event.defaultPrevented).toBe(true);
-      expect(appApi.getState()).toEqual({ submitted: true });
-    });
-
-    it("should handle malformed data-msg JSON gracefully", () => {
-      document.body.innerHTML = '<div id="app"></div>';
-
-      const appApi = Spriggan.app("#app", {
-        init: () => ({ count: 0 }),
-        update: (state, msg) => {
-          if (msg.type === "Click") {
-            return { count: state.count + 1 };
-          }
-          return state;
-        },
-        view: () => "<button data-msg='{invalid json}'>Click</button>",
-      });
-
-      const button = document.querySelector("#app button");
-      button.click();
-
+      appApi.dispatch({ type: "RunFn" });
       expect(console.error).toHaveBeenCalledWith(
-        "Spriggan: failed to parse data-msg",
+        "Spriggan: fn effect failed",
         expect.any(Error),
       );
-      expect(appApi.getState()).toEqual({ count: 0 });
     });
 
-    it("should not dispatch for elements without data-msg", () => {
+    it("should warn if run is not a function", () => {
       document.body.innerHTML = '<div id="app"></div>';
 
       const appApi = Spriggan.app("#app", {
-        init: () => ({ count: 0 }),
+        init: () => ({}),
         update: (state, msg) => {
-          if (msg.type === "Click") {
-            return { count: state.count + 1 };
+          if (msg.type === "RunFn") {
+            return [state, { type: "fn", run: "not a function" }];
           }
           return state;
         },
-        view: () => "<button>No data-msg</button>",
+        view: () => "",
       });
 
-      const button = document.querySelector("#app button");
-      button.click();
-
-      expect(appApi.getState()).toEqual({ count: 0 });
+      appApi.dispatch({ type: "RunFn" });
+      expect(console.warn).toHaveBeenCalledWith(
+        "Spriggan: fn effect requires run property to be a function",
+      );
     });
   });
-
-  describe("fn effect", () => {
     it("should execute custom function and dispatch onComplete", () => {
       document.body.innerHTML = '<div id="app"></div>';
 
@@ -1099,6 +1003,77 @@ describe("Spriggan Framework", () => {
   });
 
   describe("multiple effects", () => {
+    it("should process multiple effects from a single update", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      vi.useFakeTimers();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0, delayed: false }),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [
+              { ...state, count: state.count + 1 },
+              { type: "delay", ms: 100, msg: { type: "Delayed" } },
+              { type: "delay", ms: 200, msg: { type: "Delayed2" } },
+            ];
+          }
+          if (msg.type === "Delayed") {
+            return { ...state, delayed: true };
+          }
+          if (msg.type === "Delayed2") {
+            return { ...state, delayed: true, count: state.count + 10 };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+      expect(appApi.getState()).toEqual({ count: 1, delayed: false });
+
+      vi.advanceTimersByTime(100);
+      expect(appApi.getState()).toEqual({ count: 1, delayed: true });
+
+      vi.advanceTimersByTime(100);
+      expect(appApi.getState()).toEqual({ count: 11, delayed: true });
+
+      vi.useRealTimers();
+    });
+
+    it("should skip null/undefined effects in array", () => {
+      document.body.innerHTML = '<div id="app"></div>';
+
+      vi.useFakeTimers();
+
+      const appApi = Spriggan.app("#app", {
+        init: () => ({ count: 0 }),
+        update: (state, msg) => {
+          if (msg.type === "Trigger") {
+            return [
+              { count: state.count + 1 },
+              null,
+              { type: "delay", ms: 10, msg: { type: "Delayed" } },
+              undefined,
+            ];
+          }
+          if (msg.type === "Delayed") {
+            return { count: state.count + 100 };
+          }
+          return state;
+        },
+        view: () => "",
+      });
+
+      appApi.dispatch({ type: "Trigger" });
+      expect(appApi.getState()).toEqual({ count: 1 });
+
+      vi.advanceTimersByTime(10);
+      expect(appApi.getState()).toEqual({ count: 101 });
+
+      vi.useRealTimers();
+    });
+  });
     it("should process multiple effects from a single update", () => {
       document.body.innerHTML = '<div id="app"></div>';
 

@@ -286,9 +286,13 @@ export default function createSpriggan() {
   }
 
   function defaultEffectRunner(effect, dispatch, handlers) {
+    isDebugMode &&
+      console.log(`[Spriggan] Running DOM effect: ${effect?.type}"`);
+
     if (!effect || !effect.type) return;
 
     const handler = handlers[effect.type];
+
     if (!handler) {
       console.warn(`Spriggan: unknown effect type "${effect.type}"`);
       return;
@@ -410,6 +414,85 @@ export default function createSpriggan() {
         }
       } catch (err) {
         console.error("Spriggan: fn effect failed", err);
+      }
+    },
+
+    dom: (effect, _dispatch) => {
+      const { action, selector, name, value, delay = 0 } = effect;
+      const runDomAction = () => {
+        const element = selector ? document.querySelector(selector) : null;
+
+        if (!element && selector) {
+          console.warn(
+            `Spriggan: dom effect - element not found: "${selector}"`,
+          );
+          return;
+        }
+
+        try {
+          switch (action) {
+            case "focus":
+              element?.focus();
+              break;
+
+            case "blur":
+              element?.blur();
+              break;
+
+            case "scrollIntoView":
+              element?.scrollIntoView(
+                typeof effect.options === "object" ? effect.options : {},
+              );
+              break;
+
+            case "setAttribute":
+              if (element && name) {
+                element.setAttribute(name, String(value));
+              }
+              break;
+
+            case "removeAttribute":
+              if (element && name) {
+                element.removeAttribute(name);
+              }
+              break;
+
+            case "addClass":
+              if (element && value) {
+                element.classList.add(String(value));
+              }
+              break;
+
+            case "removeClass":
+              if (element && value) {
+                element.classList.remove(String(value));
+              }
+              break;
+
+            case "toggleClass":
+              if (element && value) {
+                element.classList.toggle(String(value));
+              }
+              break;
+
+            case "setProperty":
+              if (element && name) {
+                element[name] = value;
+              }
+              break;
+
+            default:
+              console.warn(`Spriggan: dom effect - unknown action "${action}"`);
+          }
+        } catch (err) {
+          console.error("Spriggan: dom effect failed", err);
+        }
+      };
+
+      if (delay > 0) {
+        setTimeout(runDomAction, delay);
+      } else {
+        requestAnimationFrame(runDomAction);
       }
     },
   };

@@ -219,10 +219,33 @@ interface FnEffect extends Effect {
 }
 
 /**
+ * DOM effect - perform DOM manipulations
+ */
+interface DomEffect extends Effect {
+  type: "dom";
+  action:
+    | "focus"
+    | "blur"
+    | "scrollIntoView"
+    | "setAttribute"
+    | "removeAttribute"
+    | "addClass"
+    | "removeClass"
+    | "toggleClass"
+    | "setProperty";
+  selector?: string;
+  name?: string;
+  value?: unknown;
+  options?: ScrollIntoViewOptions;
+  delay?: number;
+}
+
+/**
  * Built-in effect types
  */
 export type BuiltInEffect<M extends Message = Message> =
   | HttpEffect
   | DelayEffect<M>
   | StorageEffect
-  | FnEffect;
+  | FnEffect
+  | DomEffect;
