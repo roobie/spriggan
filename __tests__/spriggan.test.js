@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import fc from "fast-check";
 
 global.fetch = vi.fn();
 
@@ -1498,6 +1499,272 @@ describe("Spriggan Framework", () => {
       appApi.dispatch({ type: "Trigger" });
 
       expect(customRunner).toHaveBeenCalled();
+    });
+  });
+
+  describe("property tests - html function", () => {
+    it("should embed any string value unchanged", () => {
+      fc.assert(
+        fc.property(fc.string(), (s) => {
+          const result = Spriggan.html`<div>${s}</div>`;
+          return result === `<div>${s}</div>`;
+        }),
+      );
+    });
+
+    it("should embed any number value as string", () => {
+      fc.assert(
+        fc.property(fc.integer(), (n) => {
+          const result = Spriggan.html`<span>${n}</span>`;
+          return result === `<span>${n}</span>`;
+        }),
+      );
+    });
+
+    it("should always produce empty string for null", () => {
+      fc.assert(
+        fc.property(fc.string(), (prefix, suffix) => {
+          const result = Spriggan.html`${null}${prefix}${null}`;
+          return result === prefix;
+        }),
+      );
+    });
+
+    it("should always produce empty string for undefined", () => {
+      fc.assert(
+        fc.property(fc.string(), (s) => {
+          const result = Spriggan.html`${undefined}${s}${undefined}`;
+          return result === s;
+        }),
+      );
+    });
+
+    it("should join arrays by concatenating their string elements", () => {
+      fc.assert(
+        fc.property(fc.array(fc.string()), (arr) => {
+          const result = Spriggan.html`<ul>${arr}</ul>`;
+          return result === `<ul>${arr.join("")}</ul>`;
+        }),
+      );
+    });
+
+    it("should handle multiple string interpolations", () => {
+      fc.assert(
+        fc.property(fc.string(), fc.string(), fc.string(), (a, b, c) => {
+          const result = Spriggan.html`${a}${b}${c}`;
+          return result === `${a}${b}${c}`;
+        }),
+      );
+    });
+
+    it("should stringify message objects with valid JSON in single quotes", () => {
+      fc.assert(
+        fc.property(
+          fc
+            .string({ minLength: 1, maxLength: 20 })
+            .filter((s) => s.length > 0),
+          fc.option(fc.integer(), { nil: undefined }),
+          (type, extra) => {
+            const msg = extra !== undefined ? { type, extra } : { type };
+            const result = Spriggan.html`<button data-msg=${msg}>Click</button>`;
+            const expected = `'${JSON.stringify(msg)}'`;
+            return result.includes(expected);
+          },
+        ),
+      );
+    });
+
+    it("should produce valid HTML for nested templates", () => {
+      fc.assert(
+        fc.property(fc.string(), fc.string(), (inner, outer) => {
+          const innerHtml = Spriggan.html`<span>${inner}</span>`;
+          const outerHtml = Spriggan.html`<div>${innerHtml}${outer}</div>`;
+          return outerHtml === `<div><span>${inner}</span>${outer}</div>`;
+        }),
+      );
+    });
+
+    it("should handle boolean false by producing empty string", () => {
+      fc.assert(
+        fc.property(fc.string(), (s) => {
+          const result = Spriggan.html`${false}${s}${false}`;
+          return result === s;
+        }),
+      );
+    });
+
+    it("should handle boolean true by producing empty string", () => {
+      fc.assert(
+        fc.property(fc.string(), (s) => {
+          const result = Spriggan.html`${true}${s}${true}`;
+          return result === s;
+        }),
+      );
+    });
+  });
+
+  describe("property tests - state transitions", () => {
+    it("should always produce a state after dispatch for any valid message", () => {
+      fc.assert(
+        fc.property(
+          fc.record({ count: fc.integer() }),
+          fc.string({ minLength: 1 }),
+          (initialState, msgType) => {
+            document.body.innerHTML = '<div id="app"></div>';
+
+            const appApi = Spriggan.app("#app", {
+              init: () => initialState,
+              update: (state, _msg) => state,
+              view: () => "<div>test</div>",
+            });
+
+            appApi.dispatch({ type: msgType });
+            const state = appApi.getState();
+
+            return state !== undefined && state.count === initialState.count;
+          },
+        ),
+      );
+    });
+
+    it("should preserve state shape through multiple dispatches", () => {
+      fc.assert(
+        fc.property(
+          fc.record({
+            value: fc.integer({ min: -1000, max: 1000 }),
+            name: fc.string({ maxLength: 10 }),
+          }),
+          fc.array(fc.string({ minLength: 1 }), { maxLength: 10 }),
+          (initialState, messageTypes) => {
+            document.body.innerHTML = '<div id="app"></div>';
+
+            const appApi = Spriggan.app("#app", {
+              init: () => ({ ...initialState }),
+              update: (state, msg) => {
+                if (msg.type === "inc")
+                  return { ...state, value: state.value + 1 };
+                if (msg.type === "dec")
+                  return { ...state, value: state.value - 1 };
+                return state;
+              },
+              view: () => "<div>test</div>",
+            });
+
+            messageTypes.forEach((type) => {
+              appApi.dispatch({ type });
+            });
+
+            const finalState = appApi.getState();
+            return (
+              typeof finalState.value === "number" &&
+              typeof finalState.name === "string"
+            );
+          },
+        ),
+      );
+    });
+
+    it("should handle state that is a primitive", () => {
+      fc.assert(
+        fc.property(
+          fc.integer(),
+          fc.string({ minLength: 1 }),
+          (initialState, msgType) => {
+            document.body.innerHTML = '<div id="app"></div>';
+
+            const appApi = Spriggan.app("#app", {
+              init: () => initialState,
+              update: (state, msg) => {
+                if (msg.type === "inc") return state + 1;
+                return state;
+              },
+              view: (state) => `<div>${state}</div>`,
+            });
+
+            appApi.dispatch({ type: msgType });
+            const state = appApi.getState();
+
+            return typeof state === "number";
+          },
+        ),
+      );
+    });
+
+    it("should handle effect tuples correctly", () => {
+      fc.assert(
+        fc.property(
+          fc.record({ value: fc.integer() }),
+          fc.string({ minLength: 1 }),
+          (initialState, msgType) => {
+            document.body.innerHTML = '<div id="app"></div>';
+            vi.useFakeTimers();
+
+            const appApi = Spriggan.app("#app", {
+              init: () => initialState,
+              update: (state, msg) => {
+                if (msg.type === msgType) {
+                  return [
+                    { value: state.value + 1 },
+                    { type: "delay", ms: 100, msg: { type: "noop" } },
+                  ];
+                }
+                return state;
+              },
+              view: () => "<div>test</div>",
+            });
+
+            appApi.dispatch({ type: msgType });
+            const stateBefore = appApi.getState();
+
+            vi.advanceTimersByTime(150);
+            const stateAfter = appApi.getState();
+
+            vi.useRealTimers();
+
+            return (
+              stateBefore.value === stateAfter.value - 1 ||
+              stateBefore.value === initialState.value + 1
+            );
+          },
+        ),
+      );
+    });
+  });
+
+  describe("property tests - effect handling", () => {
+    it("should process any effect with a string type", () => {
+      fc.assert(
+        fc.property(
+          fc.string({ minLength: 1, maxLength: 20 }),
+          fc.record({ data: fc.string() }),
+          (effectType, payload) => {
+            document.body.innerHTML = '<div id="app"></div>';
+
+            let handlerCalled = false;
+            const handler = vi.fn(() => {
+              handlerCalled = true;
+            });
+
+            const appApi = Spriggan.app("#app", {
+              init: () => ({}),
+              update: (state, msg) => {
+                if (msg.type === "trigger") {
+                  return [state, { type: effectType, ...payload }];
+                }
+                return state;
+              },
+              view: () => "",
+              effects: {
+                [effectType]: handler,
+              },
+            });
+
+            appApi.dispatch({ type: "trigger" });
+
+            return handlerCalled || console.warn.mock.calls.length > 0;
+          },
+        ),
+      );
     });
   });
 });

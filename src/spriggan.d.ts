@@ -36,6 +36,19 @@ type HtmlValue =
   | Message;
 
 /**
+ * Message type - must have a type property
+ */
+interface Message {
+  type: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Dispatch function type - parameterized by message type
+ */
+type Dispatch<M extends Message = Message> = (msg: M) => void;
+
+/**
  * Initialize a Spriggan application
  * @param selector - CSS selector for the root element
  * @param config - Application configuration
@@ -43,7 +56,7 @@ type HtmlValue =
 declare function app<T, M extends Message>(
   selector: string,
   config: AppConfig<T, M>,
-): AppApi<T>;
+): AppApi<T, M>;
 
 /**
  * Application configuration
@@ -56,7 +69,7 @@ interface AppConfig<T, M extends Message> {
   update: UpdateFunction<T, M>;
 
   /** View function that renders state to HTML string or DOM node */
-  view: ViewFunction<T>;
+  view: ViewFunction<T, M>;
 
   /** Custom effect handlers (merged with defaults) */
   effects?: Record<string, EffectHandler<M>>;
@@ -72,14 +85,6 @@ interface AppConfig<T, M extends Message> {
 }
 
 /**
- * Message type - must have a type property
- */
-interface Message {
-  type: string;
-  [key: string]: unknown;
-}
-
-/**
  * Update function type
  * Returns either new state, or [newState, ...effects] tuple
  */
@@ -92,19 +97,17 @@ type UpdateFunction<T, M extends Message> = (
  * View function type
  * Returns HTML string, DOM Node, or undefined
  */
-type ViewFunction<T> = (state: T, dispatch: Dispatch) => string | Node | void;
-
-/**
- * Dispatch function type
- */
-type Dispatch = <M extends Message>(msg: M) => void;
+type ViewFunction<T, M extends Message> = (
+  state: T,
+  dispatch: Dispatch<M>,
+) => string | Node | void;
 
 /**
  * Application API returned from app()
  */
-interface AppApi<T> {
+interface AppApi<T, M extends Message = Message> {
   /** Dispatch a message to trigger state update */
-  dispatch: Dispatch;
+  dispatch: Dispatch<M>;
 
   /** Get current state */
   getState: () => T | null;
@@ -118,7 +121,7 @@ interface AppApi<T> {
  * Returns cleanup function or array of cleanup functions
  */
 type SubscriptionFunction<M extends Message> = (
-  dispatch: Dispatch,
+  dispatch: Dispatch<M>,
 ) => CleanupFn | CleanupFn[] | void;
 
 type CleanupFn = () => void;
@@ -136,7 +139,7 @@ interface Effect {
  */
 type EffectHandler<M extends Message> = (
   effect: Effect,
-  dispatch: Dispatch,
+  dispatch: Dispatch<M>,
 ) => void;
 
 /**
@@ -144,7 +147,7 @@ type EffectHandler<M extends Message> = (
  */
 type EffectRunner<M extends Message> = (
   effect: Effect,
-  dispatch: Dispatch,
+  dispatch: Dispatch<M>,
   handlers: Record<string, EffectHandler<M>>,
 ) => void;
 
@@ -210,16 +213,16 @@ type BuiltInEffect<M extends Message = Message> =
 /**
  * Debug tools available on globalThis.__SPRIGGAN_DEBUG__ when debug mode is enabled
  */
-interface SprigganDebugTools<T> {
+interface SprigganDebugTools<T, M extends Message = Message> {
   /** Get current state */
   getState: () => T;
 
   /** Dispatch a message */
-  dispatch: Dispatch;
+  dispatch: Dispatch<M>;
 
   /** History of state changes */
   history: Array<{
-    msg: Message;
+    msg: M;
     state: T;
     timestamp: number;
   }>;
@@ -232,5 +235,5 @@ interface SprigganDebugTools<T> {
 }
 
 declare global {
-  var __SPRIGGAN_DEBUG__: SprigganDebugTools<unknown> | undefined;
+  var __SPRIGGAN_DEBUG__: SprigganDebugTools<unknown, Message> | undefined;
 }
