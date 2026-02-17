@@ -10,6 +10,10 @@ declare namespace Prism {
   export function highlightElement(element: Element): void;
 }
 
+declare namespace useweft {
+  export function rehash(): void;
+}
+
 interface Window {
   Prism?: typeof Prism;
 }

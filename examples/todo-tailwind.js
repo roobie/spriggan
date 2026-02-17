@@ -235,7 +235,13 @@ function update(state, msg) {
       ];
 
     case "QuoteFetched":
-      return { ...state, quote: msg.data, loading: false };
+      return [
+        { ...state, quote: msg.data, loading: false },
+        /** @type {Effect} */ ({
+          type: "fn",
+          run: () => useweft.rehash(),
+        }),
+      ];
 
     case "QuoteError":
       return { ...state, error: msg.error, loading: false };

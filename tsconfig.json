@@ -49,5 +49,5 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*", "examples/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/useweft*"]
 }
