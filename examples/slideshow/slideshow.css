@@ -60,11 +60,7 @@ body {
   min-height: 100vh;
   overflow: hidden;
   position: relative;
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   transition: background 0.4s ease;
 }
 
@@ -108,8 +104,8 @@ body {
 }
 
 .slide-content {
-  max-width: var(--slide-max-width);
-  width: 100%;
+  /* max-width: var(--slide-max-width); */
+  /* width: 100%; */
   position: relative;
   z-index: 2;
   max-height: 85vh;

@@ -1,9 +1,28 @@
-import { html } from "../../src/spriggan.js";
-import createSpriggan from "../../src/spriggan.js";
+// @ts-check
+import createSpriggan, { html } from "../../src/spriggan.js";
 import { slides } from "./slides.js";
 
 const { app } = createSpriggan();
 
+/** @typedef {{ type: string, [key: string]: unknown }} Msg */
+
+/**
+ * @typedef {{
+ *   currentSlide: number;
+ *   totalSlides: number;
+ *   isFullscreen: boolean;
+ *   isOverview: boolean;
+ *   showNotes: boolean;
+ *   isTransitioning: boolean;
+ *   touchStartX: number;
+ *   touchStartY: number;
+ *   visitedSlides: Set<number>;
+ *   demo: { counter: number; inputText: string };
+ *   theme: 'dark' | 'light';
+ * }} State
+ */
+
+/** @type {State} */
 const init = {
   currentSlide: 0,
   totalSlides: slides.length,
@@ -21,6 +40,13 @@ const init = {
   theme: "dark",
 };
 
+/** @typedef {{ type: string; [key: string]: unknown }} Effect */
+
+/**
+ * @param {State} state
+ * @param {Msg} msg
+ * @returns {State | [State, ...Effect[]]}
+ */
 function update(state, msg) {
   switch (msg.type) {
     case "NextSlide":
@@ -60,6 +86,7 @@ function update(state, msg) {
       ];
 
     case "GoToSlide":
+      if (typeof msg.index !== "number") return state;
       if (msg.index < 0 || msg.index >= state.totalSlides) return state;
       if (state.isTransitioning) return state;
       return [
@@ -86,7 +113,7 @@ function update(state, msg) {
       ];
 
     case "SetFullscreen":
-      return { ...state, isFullscreen: msg.value };
+      return { ...state, isFullscreen: Boolean(msg.value) };
 
     case "ToggleOverview":
       return { ...state, isOverview: !state.isOverview };
@@ -108,11 +135,17 @@ function update(state, msg) {
     }
 
     case "TouchStart":
-      return { ...state, touchStartX: msg.x, touchStartY: msg.y };
+      return {
+        ...state,
+        touchStartX: typeof msg.x === "number" ? msg.x : 0,
+        touchStartY: typeof msg.y === "number" ? msg.y : 0,
+      };
 
     case "TouchEnd": {
-      const deltaX = msg.x - state.touchStartX;
-      const deltaY = msg.y - state.touchStartY;
+      const x = typeof msg.x === "number" ? msg.x : 0;
+      const y = typeof msg.y === "number" ? msg.y : 0;
+      const deltaX = x - state.touchStartX;
+      const deltaY = y - state.touchStartY;
       const minSwipeDistance = 50;
 
       if (
@@ -155,7 +188,13 @@ function update(state, msg) {
       };
 
     case "DemoInputChange":
-      return { ...state, demo: { ...state.demo, inputText: msg.value } };
+      return {
+        ...state,
+        demo: {
+          ...state.demo,
+          inputText: typeof msg.value === "string" ? msg.value : "",
+        },
+      };
 
     default:
       return state;
@@ -163,13 +202,21 @@ function update(state, msg) {
 }
 
 function triggerPrismHighlight() {
-  if (typeof Prism !== "undefined") {
+  /** @type {{ highlightAll?: () => void }} */
+  const prism = /** @type {*} */ (
+    typeof window !== "undefined" ? window.Prism : undefined
+  );
+  if (prism && typeof prism.highlightAll === "function") {
     requestAnimationFrame(() => {
-      Prism.highlightAll();
+      prism.highlightAll?.();
     });
   }
 }
 
+/**
+ * @param {State} state
+ * @returns {string}
+ */
 function renderProgressBar(state) {
   const progress = ((state.currentSlide + 1) / state.totalSlides) * 100;
   return html`
@@ -178,6 +225,13 @@ function renderProgressBar(state) {
   `;
 }
 
+/**
+ * @param {{ id?: string; title?: string; subtitle?: string; tagline?: string; content?: string; centered?: boolean; demo?: { type: string; description?: string } | null; code?: string; cta?: { text: string; url: string }; notes?: string }} slide
+ * @param {number} index
+ * @param {State} state
+ * @param {(msg: Msg) => void} dispatch
+ * @returns {string}
+ */
 function renderSlide(slide, index, state, dispatch) {
   const isActive = index === state.currentSlide;
   const slideClass = `slide ${isActive ? "active" : ""}`;
@@ -187,27 +241,31 @@ function renderSlide(slide, index, state, dispatch) {
     const textClass = slide.centered ? "slide-text centered" : "slide-text";
     slideContent = html`
       <div class="slide-content">
-        <h1 class="slide-title">${slide.title}</h1>
-        <h2 class="slide-subtitle">${slide.subtitle}</h2>
-        <p class="${textClass}">${slide.tagline}</p>
+        <h1 class="slide-title">${slide.title || ""}</h1>
+        <h2 class="slide-subtitle">${slide.subtitle || ""}</h2>
+        <p class="${textClass}">${slide.tagline || ""}</p>
       </div>
     `;
   } else {
     slideContent = html`
       <div class="slide-content">
-        <h1 class="slide-title">${slide.title}</h1>
-        <div class="slide-text">${slide.content}</div>
+        <h1 class="slide-title">${slide.title || ""}</h1>
+        <div class="slide-text">${slide.content || ""}</div>
         ${slide.demo ? renderDemo(slide.demo, state, dispatch) : ""}
-        ${slide.code
-          ? html`<pre><code class="language-javascript">${escapeHtml(
-              slide.code,
-            )}</code></pre>`
-          : ""}
-        ${slide.cta
-          ? html`<a href="${slide.cta.url}" class="cta-btn" target="_blank"
+        ${
+          slide.code
+            ? html`<pre><code class="language-javascript">${escapeHtml(
+                slide.code,
+              )}</code></pre>`
+            : ""
+        }
+        ${
+          slide.cta
+            ? html`<a href="${slide.cta.url}" class="cta-btn" target="_blank"
               >${slide.cta.text}</a
             >`
-          : ""}
+            : ""
+        }
       </div>
     `;
   }
@@ -219,6 +277,10 @@ function renderSlide(slide, index, state, dispatch) {
   `;
 }
 
+/**
+ * @param {string} str
+ * @returns {string}
+ */
 function escapeHtml(str) {
   return str
     .replace(/&/g, "&amp;")
@@ -228,6 +290,12 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+/**
+ * @param {{ type: string; description?: string }} demo
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderDemo(demo, state, _dispatch) {
   switch (demo.type) {
     case "counter":
@@ -236,7 +304,7 @@ function renderDemo(demo, state, _dispatch) {
           <button data-msg=${{ type: "DemoDecrement" }}>-</button>
           <span>Count: ${state.demo.counter}</span>
           <button data-msg=${{ type: "DemoIncrement" }}>+</button>
-          <p>${demo.description}</p>
+          <p>${demo.description || ""}</p>
         </div>
       `;
     default:
@@ -244,6 +312,11 @@ function renderDemo(demo, state, _dispatch) {
   }
 }
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderNavigation(state, _dispatch) {
   const prevDisabled = state.currentSlide <= 0;
   const nextDisabled = state.currentSlide >= state.totalSlides - 1;
@@ -268,6 +341,11 @@ function renderNavigation(state, _dispatch) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} _dispatch
+ * @returns {string}
+ */
 function renderControlBar(state, _dispatch) {
   return html`
     <div class="control-bar">
@@ -299,9 +377,13 @@ function renderControlBar(state, _dispatch) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @returns {string}
+ */
 function renderSpeakerNotes(state) {
   const currentSlide = slides[state.currentSlide];
-  if (!currentSlide.notes) return "";
+  if (!currentSlide?.notes) return "";
 
   return html`
     <div class="speaker-notes">
@@ -310,6 +392,10 @@ function renderSpeakerNotes(state) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @returns {string}
+ */
 function renderSlideNumber(state) {
   return html`
     <div class="slide-number">
@@ -318,6 +404,11 @@ function renderSlideNumber(state) {
   `;
 }
 
+/**
+ * @param {State} state
+ * @param {(msg: Msg) => void} dispatch
+ * @returns {string}
+ */
 function view(state, dispatch) {
   const translateX = -state.currentSlide * 100;
   const containerStyle = state.isOverview
@@ -342,9 +433,20 @@ function view(state, dispatch) {
   `;
 }
 
+/**
+ * @param {(msg: Msg) => void} dispatch
+ * @returns {(() => void)[]}
+ */
 function subscriptions(dispatch) {
+  /**
+   * @param {KeyboardEvent} e
+   */
   const handleKeydown = (e) => {
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement
+    )
+      return;
 
     switch (e.key) {
       case "ArrowRight":
@@ -397,26 +499,44 @@ function subscriptions(dispatch) {
     }
   };
 
+  /**
+   * @param {TouchEvent} e
+   */
   const handleTouchStart = (e) => {
     const touch = e.touches[0];
-    dispatch({ type: "TouchStart", x: touch.clientX, y: touch.clientY });
+    if (touch) {
+      dispatch({ type: "TouchStart", x: touch.clientX, y: touch.clientY });
+    }
   };
 
+  /**
+   * @param {TouchEvent} e
+   */
   const handleTouchEnd = (e) => {
     const touch = e.changedTouches[0];
-    dispatch({ type: "TouchEnd", x: touch.clientX, y: touch.clientY });
+    if (touch) {
+      dispatch({ type: "TouchEnd", x: touch.clientX, y: touch.clientY });
+    }
   };
 
   const handleFullscreenChange = () => {
+    const doc =
+      /** @type {{ fullscreenElement?: Element; webkitFullscreenElement?: Element }} */ (
+        document
+      );
     dispatch({
       type: "SetFullscreen",
-      value: !!(document.fullscreenElement || document.webkitFullscreenElement),
+      value: !!(document.fullscreenElement || doc.webkitFullscreenElement),
     });
   };
 
+  /**
+   * @param {MouseEvent} e
+   */
   const handleClickOverview = (e) => {
-    const slide = e.target.closest(".slide");
-    if (slide?.dataset.slide) {
+    const slide =
+      e.target instanceof Element ? e.target.closest(".slide") : null;
+    if (slide && slide instanceof HTMLElement && slide.dataset.slide) {
       const index = parseInt(slide.dataset.slide, 10);
       dispatch({ type: "GoToSlide", index });
     }
@@ -454,34 +574,39 @@ function subscriptions(dispatch) {
   ];
 }
 
+/** @type {Record<string, (effect: { [key: string]: unknown }, _dispatch: (msg: Msg) => void) => void>} */
 const customEffects = {
   fullscreen: (effect, _dispatch) => {
     const element = document.documentElement;
+    /** @type {{ requestFullscreen?: () => void; webkitRequestFullscreen?: () => void; msRequestFullscreen?: () => void }} */
+    const el = /** @type {*} */ (element);
     if (effect.enter) {
-      if (element.requestFullscreen) {
-        element.requestFullscreen();
-      } else if (element.webkitRequestFullscreen) {
-        element.webkitRequestFullscreen();
-      } else if (element.msRequestFullscreen) {
-        element.msRequestFullscreen();
+      if (el.requestFullscreen) {
+        el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
       }
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+      /** @type {{ exitFullscreen?: () => void; webkitExitFullscreen?: () => void; msExitFullscreen?: () => void }} */
+      const doc = /** @type {*} */ (document);
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
       }
     }
   },
 
   announce: (effect, _dispatch) => {
     const announcer = document.getElementById("sr-announcer");
-    if (announcer) {
+    if (announcer && effect.message) {
       announcer.textContent = "";
       setTimeout(() => {
-        announcer.textContent = effect.message;
+        announcer.textContent = String(effect.message || "");
       }, 50);
     }
   },

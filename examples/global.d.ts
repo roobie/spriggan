@@ -4,3 +4,12 @@ declare namespace showdown {
     makeHtml(markdown: string): string;
   }
 }
+
+declare namespace Prism {
+  export function highlightAll(): void;
+  export function highlightElement(element: Element): void;
+}
+
+interface Window {
+  Prism?: typeof Prism;
+}
