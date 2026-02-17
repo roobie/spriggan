@@ -69,7 +69,7 @@ function update(state, msg) {
         },
         {
           type: "fn",
-          run: () => triggerPrismHighlight(),
+          run: () => requestAnimationFrame(() => triggerPrismHighlight()),
         },
       ];
 
@@ -83,6 +83,10 @@ function update(state, msg) {
           isTransitioning: true,
         },
         { type: "delay", ms: 600, msg: { type: "TransitionEnd" } },
+        {
+          type: "fn",
+          run: () => requestAnimationFrame(() => triggerPrismHighlight()),
+        },
       ];
 
     case "GoToSlide":
@@ -101,10 +105,24 @@ function update(state, msg) {
           type: "announce",
           message: `Slide ${msg.index + 1} of ${state.totalSlides}`,
         },
+        {
+          type: "fn",
+          run: () => requestAnimationFrame(() => triggerPrismHighlight()),
+        },
       ];
 
     case "TransitionEnd":
-      return { ...state, isTransitioning: false };
+      return [
+        { ...state, isTransitioning: false },
+        {
+          type: "fn",
+          run: () => {
+            requestAnimationFrame(() => {
+              triggerPrismHighlight();
+            });
+          },
+        },
+      ];
 
     case "ToggleFullscreen":
       return [
@@ -625,7 +643,6 @@ function subscriptions(dispatch) {
   document.addEventListener("touchend", handleTouchEnd, { passive: true });
   document.addEventListener("fullscreenchange", handleFullscreenChange);
   document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
-  document.addEventListener("click", handleClickOverview);
 
   const savedTheme = localStorage.getItem("slideshow-theme");
   if (savedTheme) {
@@ -696,5 +713,5 @@ app("#app", {
   view,
   subscriptions,
   effects: customEffects,
-  debug: false,
+  debug: location.href.includes("localhost"),
 });

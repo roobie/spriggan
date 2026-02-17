@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -13,7 +14,6 @@
     />
     <meta name="theme-color" content="#1a1a2e" />
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,59 +21,40 @@
       rel="stylesheet"
     />
 
-    <!-- CSS Frameworks -->
-    <link rel="stylesheet" href="https://unpkg.com/open-props" />
+    <script src="https://useweft.dev/client/latest.js"></script>
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="./examples/slideshow/slideshow.css" />
-
-    <!-- DOM Morphing -->
     <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
 
-    <!-- Syntax Highlighting JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js" integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-javascript.min.js" integrity="sha512-yvw5BDA/GQu8umskpIOBhX2pDLrdOiriaK4kVxtD28QEGLV5rscmCfDjkrx52tIgzLgwzs1FsALV6eYDpGnEkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- Syntax Highlighting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-css.min.js" integrity="sha512-mHqYW9rlMztkE8WFB6wIPNWOVtQO50GYBsBRMyA1CMk34zLJ6BrvVy3RVHoIIofugmnoNLGxkuePQ9VT2a3u8w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+      integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-javascript.min.js"
+      integrity="sha512-yvw5BDA/GQu8umskpIOBhX2pDLrdOiriaK4kVxtD28QEGLV5rscmCfDjkrx52tIgzLgwzs1FsALV6eYDpGnEkQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-css.min.js"
+      integrity="sha512-mHqYW9rlMztkE8WFB6wIPNWOVtQO50GYBsBRMyA1CMk34zLJ6BrvVy3RVHoIIofugmnoNLGxkuePQ9VT2a3u8w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
 
-
-    <!-- Spriggan Framework -->
     <script type="module" src="./src/spriggan.js"></script>
+    <script type="module" src="./examples/slideshow-tw/slides.js"></script>
+    <script type="module" src="./examples/slideshow-tw/slideshow.js"></script>
 
-    <!-- Slide Content -->
-    <script type="module" src="./examples/slideshow/slides.js"></script>
+    <link rel="stylesheet" href="./examples/slideshow-tw/slideshow.css" />
 
-    <!-- Main Application -->
-    <script type="module" src="./examples/slideshow/slideshow.js"></script>
-
-    <style>
-      /* Critical CSS for fast initial render */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        background: #1a1a2e;
-        color: #f0f0f0;
-        overflow: hidden;
-        font-family: "Inter", system-ui, sans-serif;
-      }
-      #app {
-        min-height: 100vh;
-      }
-    </style>
   </head>
-  <body>
-    <div id="app">
+  <body class="m-0 p-0 overflow-hidden font-[Inter,system-ui,sans-serif]">
+    <div id="app" class="min-h-screen bg-slide text-slide">
       <div
-        class="loading"
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          font-size: 1.2rem;
-          opacity: 0.7;
-        "
+        class="flex items-center justify-center min-h-screen text-lg opacity-70 [animation:pulse_1.5s_ease-in-out_infinite]"
       >
         Loading Slideshow...
       </div>
@@ -83,7 +64,7 @@
       id="sr-announcer"
       aria-live="polite"
       aria-atomic="true"
-      class="sr-only"
+      class="absolute w-px h-px p-0 -m-px overflow-hidden [clip:rect(0,0,0,0)] whitespace-nowrap border-0"
     ></div>
   </body>
 </html>

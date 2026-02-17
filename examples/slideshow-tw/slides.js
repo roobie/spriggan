@@ -150,8 +150,10 @@ function view(state, dispatch) {
             <li>State diff visualization</li>
             <li><strong>Time-travel debugging</strong></li>
           </ul>
-          <pre class="text-xs md:text-sm"><code class="language-javascript">__SPRIGGAN_DEBUG__.history
-__SPRIGGAN_DEBUG__.timeTravel(5)</code></pre>
+          <pre class="text-xs md:text-sm"><code class="language-javascript">instance.debug.history
+// => State[]
+instance.debug.timeTravel(5)
+// => travel in time</code></pre>
         </div>
       </div>
     `,
@@ -165,9 +167,11 @@ __SPRIGGAN_DEBUG__.timeTravel(5)</code></pre>
       <div class="text-center">
         <h2 class="mt-0 text-lg md:text-xl">📦 Installation</h2>
         <div class="inline-block text-left text-sm md:text-base">
-          <p class="mb-2"><strong>CDN:</strong></p>
+          <p class="mb-2"><strong>Copy <a href="./src/spriggan.js">spriggan.js</a> and include:</strong></p>
+          <pre class="mb-4 text-xs md:text-sm"><code class="language-html">&lt;script src="spriggan.js"&gt;&lt;/script&gt;</code></pre>
+          <p class="mb-2"><strong>CDN (not yet implemented, planned):</strong></p>
           <pre class="mb-4 text-xs md:text-sm"><code class="language-html">&lt;script src="https://unpkg.com/spriggan/dist/spriggan.min.js"&gt;&lt;/script&gt;</code></pre>
-          <p class="mb-2"><strong>npm:</strong></p>
+          <p class="mb-2"><strong>npm (not yet implemented, planned):</strong></p>
           <pre class="m-0 text-xs md:text-sm"><code class="language-bash">npm install spriggan</code></pre>
         </div>
         <h2 class="mt-4 md:mt-6 text-lg md:text-xl">✨ Philosophy</h2>
@@ -175,18 +179,17 @@ __SPRIGGAN_DEBUG__.timeTravel(5)</code></pre>
           Simplicity over features. Pure functions over clever abstractions. Build tools optional. AI-first.
         </blockquote>
         <div class="mt-4 md:mt-6 flex flex-col md:flex-row justify-center gap-2 md:gap-4 text-sm md:text-base">
-          <a href="https://github.com/yourname/spriggan" class="text-secondary hover:underline">📁 GitHub</a>
-          <a href="../../README.md" class="text-accent hover:underline">📖 Docs</a>
-          <a href="../demo.js" class="text-purple-400 hover:underline">🎮 Examples</a>
+          <a href="https://github.com/roobie/spriggan" class="text-secondary hover:underline">📁 GitHub</a>
+          <a href="./README.md" class="text-accent hover:underline">📖 Docs</a>
+          <a href="./examples/todo-tailwind.html" class="text-purple-400 hover:underline">🎮 Example TODO app</a>
         </div>
       </div>
     `,
-    notes:
-      "This slideshow is built with Spriggan! Press F for fullscreen, O for overview.",
+    notes: "This slideshow is built with Spriggan! Press F for fullscreen.",
     demo: null,
     cta: {
-      text: "⭐ View on GitHub",
-      url: "https://github.com/yourname/spriggan",
+      text: "⭐ on GitHub",
+      url: "https://github.com/roobie/spriggan",
     },
   },
 ];
