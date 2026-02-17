@@ -355,6 +355,27 @@ This repository includes a fully functional task manager demo that showcases Spr
 
 The demo's code demonstrates TEA architecture, event delegation, effects for persistence, and view functions like `renderTask`, `renderFilters`, and `renderStats`. It's a great starting point for building your own Spriggan apps.
 
+**Interactive Slideshow Demo**
+
+This repository also includes an interactive slideshow presentation that **uses Spriggan itself** to demonstrate the framework's capabilities. The slideshow features:
+
+- **Keyboard Navigation**: Arrow keys, spacebar, F (fullscreen), O (overview), N (notes), T (theme)
+- **Touch/Swipe Support**: Mobile-friendly gesture navigation
+- **Progress Tracking**: Visual progress bar with smooth transitions
+- **Fullscreen Mode**: Immersive presentation experience
+- **Overview Mode**: Thumbnail view of all slides
+- **Speaker Notes**: Optional notes panel for presenters
+- **Theme Toggle**: Dark/light theme with localStorage persistence
+- **Live Demos**: Interactive counter demonstrating TEA in action
+- **Accessibility**: Screen reader support, keyboard-only navigation, focus management
+- **No Build Tools**: Pure vanilla JS with modern web platform features
+
+**Try the slideshow:**
+- Open `examples/slideshow/index.html` in your browser.
+- Or visit the [Live Demo](https://roobie.github.io/spriggan/examples/slideshow).
+
+The slideshow serves as both a demo and comprehensive tutorial of Spriggan's patterns.
+
 ---
 
 ## Core Concepts
