@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>The Elm Architecture - A Spriggan Walkthrough</title>
+    <meta
+      name="description"
+      content="An interactive walkthrough of The Elm Architecture (TEA) and how Spriggan implements it, with live embedded examples."
+    />
+    <meta name="theme-color" content="#0f172a" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="preconnect" href="https://api.useweft.dev" crossorigin />
+    <script
+      src="https://useweft.dev/client/latest.js"
+    ></script>
+
+    <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph.min.js"></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+      integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-javascript.min.js"
+      integrity="sha512-yvw5BDA/GQu8umskpIOBhX2pDLrdOiriaK4kVxtD28QEGLV5rscmCfDjkrx52tIgzLgwzs1FsALV6eYDpGnEkQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-css.min.js"
+      integrity="sha512-mHqYW9rlMztkE8WFB6wIPNWOVtQO50GYBsBRMyA1CMk34zLJ6BrvVy3RVHoIIofugmnoNLGxkuePQ9VT2a3u8w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script type="module" src="../../src/spriggan.js"></script>
+    <script type="module" src="./sections.js"></script>
+    <script type="module" src="./walkthrough.js"></script>
+
+    <link rel="stylesheet" href="./walkthrough.css" />
+  </head>
+  <body class="m-0 p-0 overflow-hidden font-[Inter,system-ui,sans-serif]">
+    <div id="app" class="min-h-screen bg-slide text-slide">
+      <div
+        class="flex items-center justify-center min-h-screen text-lg opacity-70 [animation:pulse_1.5s_ease-in-out_infinite]"
+      >
+        Loading Walkthrough...
+      </div>
+    </div>
+
+    <div
+      id="sr-announcer"
+      aria-live="polite"
+      aria-atomic="true"
+      class="absolute w-px h-px p-0 -m-px overflow-hidden [clip:rect(0,0,0,0)] whitespace-nowrap border-0"
+    ></div>
+  </body>
+</html>
