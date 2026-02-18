@@ -434,10 +434,10 @@ function renderProseColumn(state, dispatch) {
  * @param {{ id: string; title: string; prose: string; code: string | null; demo: { type: string; title: string; description: string } | null }} section
  * @param {number} index
  * @param {State} state
- * @param {(msg: Msg) => void} dispatch
+ * @param {(msg: Msg) => void} _dispatch
  * @returns {string}
  */
-function renderSection(section, index, state, dispatch) {
+function renderSection(section, index, state, _dispatch) {
   const isActive = index === state.activeSection;
   const isCompleted = index < state.activeSection;
 
@@ -547,11 +547,13 @@ function renderDemoColumn(state, dispatch) {
                 )
           }
         </div>
-
       </div>
 
       <p class="text-xs m-2 text-gray-500">
-        Hint: you can interact with the application via <code>window.demo</code>, e.g. <code>window.demo.debug.history</code> and <code>window.demo.debug.timeTravel(number)</code>
+        Hint: you can interact with the application via
+        <code>window.demo</code>, e.g.
+        <code>window.demo.debug.history</code> and
+        <code>window.demo.debug.timeTravel(number)</code>
       </p>
     </div>
   `;
@@ -581,10 +583,10 @@ function renderDemo(demo, state, dispatch) {
 /**
  * @param {{ title: string; description: string }} demo
  * @param {State} state
- * @param {(msg: Msg) => void} dispatch
+ * @param {(msg: Msg) => void} _dispatch
  * @returns {string}
  */
-function renderCounterDemo(demo, state, dispatch) {
+function renderCounterDemo(demo, state, _dispatch) {
   const { count } = state.demos.counter;
 
   return html`
@@ -627,10 +629,10 @@ function renderCounterDemo(demo, state, dispatch) {
 /**
  * @param {{ title: string; description: string }} demo
  * @param {State} state
- * @param {(msg: Msg) => void} dispatch
+ * @param {(msg: Msg) => void} _dispatch
  * @returns {string}
  */
-function renderMultiCounterDemo(demo, state, dispatch) {
+function renderMultiCounterDemo(demo, state, _dispatch) {
   const { counters, autoIncrement } = state.demos.multiCounter;
 
   return html`
@@ -709,11 +711,11 @@ function renderMultiCounterDemo(demo, state, dispatch) {
 /**
  * @param {{ title: string; description: string }} demo
  * @param {State} state
- * @param {(msg: Msg) => void} dispatch
+ * @param {(msg: Msg) => void} _dispatch
  * @returns {string}
  */
-function renderTodoMiniDemo(demo, state, dispatch) {
-  const { todos, input, filter, nextId } = state.demos.todoMini;
+function renderTodoMiniDemo(demo, state, _dispatch) {
+  const { todos, input, filter } = state.demos.todoMini;
   const filteredTodos = todos.filter((t) => {
     if (filter === "active") return !t.done;
     if (filter === "completed") return t.done;
@@ -882,7 +884,7 @@ function restoreScrollPositions() {
     proseColumn.dataset.scrollRestoration
   ) {
     const scrollTop = parseInt(proseColumn.dataset.scrollRestoration, 10);
-    if (!isNaN(scrollTop)) {
+    if (!Number.isNaN(scrollTop)) {
       proseColumn.scrollTop = scrollTop;
     }
   }
@@ -959,7 +961,6 @@ function subscriptions(dispatch) {
    */
   const scrollToSection = (sectionIndex) => {
     const proseColumn = document.querySelector("#prose-scroll-container");
-    const demoColumn = document.querySelector(".demo-column");
     if (!proseColumn) return;
 
     const sectionEl = proseColumn.querySelector(
@@ -991,8 +992,6 @@ function subscriptions(dispatch) {
     )
       return;
 
-    const currentSection = sections.length > 0 ? sections[0] : null;
-
     if (e.key === "ArrowDown" || e.key === "PageDown") {
       e.preventDefault();
       const proseColumn = document.querySelector("#prose-scroll-container");
@@ -1016,7 +1015,6 @@ function subscriptions(dispatch) {
     }
   };
 
-  const proseColumn = document.querySelector(".prose-column");
   document.addEventListener("keydown", handleKeydown);
 
   // Wait for prose column to be rendered before attaching scroll listener
