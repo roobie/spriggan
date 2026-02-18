@@ -407,7 +407,7 @@ function renderProseColumn(state, dispatch) {
   return html`
     <div
       id="prose-scroll-container"
-      class="overflow-y-auto h-full p-6 lg:p-8 bg-prose border-r border-theme"
+      class="overflow-y-auto h-full p-6 lg:p-8 pt-0 bg-prose border-r border-theme"
       data-scroll-restoration="${state.proseScrollTop}"
     >
       <header class="mb-8 pb-4 border-b border-theme">
@@ -486,12 +486,12 @@ function renderDemoColumn(state, dispatch) {
   const currentSection = sections[state.activeSection];
 
   return html`
-    <div class="demo-column overflow-y-auto h-full p-6 lg:p-8 bg-demo">
+    <div class="demo-column overflow-y-auto h-full pl-2 bg-demo">
       <div
         class="sticky top-0 bg-demo/95 backdrop-blur-sm pb-4 mb-4 border-b border-theme z-10"
       >
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-secondary">
+          <h2 class="text-lg font-semibold text-secondary pt-4">
             ${currentSection?.title || "Code & Demo"}
           </h2>
           <div class="flex gap-2">
@@ -547,7 +547,12 @@ function renderDemoColumn(state, dispatch) {
                 )
           }
         </div>
+
       </div>
+
+      <p class="text-xs m-2 text-gray-500">
+        Hint: you can interact with the application via <code>window.demo</code>, e.g. <code>window.demo.debug.history</code> and <code>window.demo.debug.timeTravel(number)</code>
+      </p>
     </div>
   `;
 }
@@ -839,7 +844,7 @@ function renderThemeToggle(state) {
   return html`
     <button
       data-msg=${{ type: "ToggleTheme" }}
-      class="fixed top-4 right-4 p-2 rounded-full bg-black/30 backdrop-blur-sm border border-theme cursor-pointer transition-all hover:scale-110 z-50"
+      class="fixed bottom-4 right-4 p-2 rounded-full bg-black/30 backdrop-blur-sm border border-theme cursor-pointer transition-all hover:scale-110 z-50"
       title="Toggle theme"
     >
       ${state.theme === "dark" ? "☀️" : "🌙"}
@@ -1086,5 +1091,8 @@ const instance = app("#app", {
   effects: customEffects,
   debug: location.href.includes("localhost"),
 });
+
+// expose the instance on window so we can time travel etc.
+window.demo = instance;
 
 setTimeout(triggerPrismHighlight, 200);

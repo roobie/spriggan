@@ -16,4 +16,5 @@ declare namespace useweft {
 
 interface Window {
   Prism?: typeof Prism;
+  demo: unknown;
 }
