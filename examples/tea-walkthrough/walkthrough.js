@@ -406,7 +406,9 @@ function escapeHtml(str) {
 function renderProseColumn(state, dispatch) {
   return html`
     <div
-      class="prose-column overflow-y-auto h-full p-6 lg:p-8 bg-prose border-r border-theme"
+      id="prose-scroll-container"
+      class="overflow-y-auto h-full p-6 lg:p-8 bg-prose border-r border-theme"
+      data-scroll-restoration="${state.proseScrollTop}"
     >
       <header class="mb-8 pb-4 border-b border-theme">
         <h1 class="text-2xl lg:text-3xl font-extrabold gradient-title mb-2">
@@ -868,6 +870,19 @@ function view(state, dispatch) {
   `;
 }
 
+function restoreScrollPositions() {
+  const proseColumn = document.querySelector("#prose-scroll-container");
+  if (
+    proseColumn instanceof HTMLElement &&
+    proseColumn.dataset.scrollRestoration
+  ) {
+    const scrollTop = parseInt(proseColumn.dataset.scrollRestoration, 10);
+    if (!isNaN(scrollTop)) {
+      proseColumn.scrollTop = scrollTop;
+    }
+  }
+}
+
 function triggerPrismHighlight() {
   requestAnimationFrame(() => {
     if (typeof window.Prism !== "undefined" && window.Prism.highlightAll) {
@@ -891,9 +906,9 @@ function subscriptions(dispatch) {
     if (isScrollingProgrammatically) return;
     if (!ticking) {
       requestAnimationFrame(() => {
-        const proseColumn = document.querySelector(".prose-column");
+        const proseColumn = document.querySelector("#prose-scroll-container");
         const demoColumn = document.querySelector(".demo-column");
-        if (proseColumn) {
+        if (proseColumn instanceof HTMLElement) {
           const sectionEls = proseColumn.querySelectorAll("[data-section]");
           const proseRect = proseColumn.getBoundingClientRect();
           // Detect section near top of viewport (15% from top, accounting for header)
@@ -916,7 +931,7 @@ function subscriptions(dispatch) {
           dispatch({ type: "SetActiveSection", index: closestIndex });
 
           // Sync demo column scroll proportionally
-          if (demoColumn && proseColumn) {
+          if (demoColumn instanceof HTMLElement && proseColumn) {
             const proseScrollRatio =
               proseColumn.scrollTop /
               (proseColumn.scrollHeight - proseColumn.clientHeight || 1);
@@ -938,7 +953,7 @@ function subscriptions(dispatch) {
    * @param {number} sectionIndex
    */
   const scrollToSection = (sectionIndex) => {
-    const proseColumn = document.querySelector(".prose-column");
+    const proseColumn = document.querySelector("#prose-scroll-container");
     const demoColumn = document.querySelector(".demo-column");
     if (!proseColumn) return;
 
@@ -975,20 +990,20 @@ function subscriptions(dispatch) {
 
     if (e.key === "ArrowDown" || e.key === "PageDown") {
       e.preventDefault();
-      const proseColumn = document.querySelector(".prose-column");
-      if (proseColumn) {
+      const proseColumn = document.querySelector("#prose-scroll-container");
+      if (proseColumn instanceof HTMLElement) {
         proseColumn.scrollBy({ top: 200, behavior: "smooth" });
       }
     } else if (e.key === "ArrowUp" || e.key === "PageUp") {
       e.preventDefault();
-      const proseColumn = document.querySelector(".prose-column");
-      if (proseColumn) {
+      const proseColumn = document.querySelector("#prose-scroll-container");
+      if (proseColumn instanceof HTMLElement) {
         proseColumn.scrollBy({ top: -200, behavior: "smooth" });
       }
     } else if (e.key === "Home") {
       e.preventDefault();
-      const proseColumn = document.querySelector(".prose-column");
-      if (proseColumn) {
+      const proseColumn = document.querySelector("#prose-scroll-container");
+      if (proseColumn instanceof HTMLElement) {
         proseColumn.scrollTo({ top: 0, behavior: "smooth" });
       }
     } else if (e.key === "t" || e.key === "T") {
@@ -997,10 +1012,21 @@ function subscriptions(dispatch) {
   };
 
   const proseColumn = document.querySelector(".prose-column");
-  if (proseColumn) {
-    proseColumn.addEventListener("scroll", handleScroll, { passive: true });
-  }
   document.addEventListener("keydown", handleKeydown);
+
+  // Wait for prose column to be rendered before attaching scroll listener
+  const attachScrollListener = () => {
+    const col = document.querySelector("#prose-scroll-container");
+    if (col instanceof HTMLElement) {
+      col.addEventListener("scroll", handleScroll, { passive: true });
+    } else {
+      setTimeout(attachScrollListener, 50);
+    }
+  };
+  setTimeout(attachScrollListener, 100);
+
+  // Restore scroll position if saved
+  setTimeout(restoreScrollPositions, 150);
 
   /**
    * @param {MouseEvent} e
@@ -1029,8 +1055,9 @@ function subscriptions(dispatch) {
 
   return [
     () => {
-      if (proseColumn) {
-        proseColumn.removeEventListener("scroll", handleScroll);
+      const col = document.querySelector("#prose-scroll-container");
+      if (col) {
+        col.removeEventListener("scroll", handleScroll);
       }
       document.removeEventListener("keydown", handleKeydown);
       document.removeEventListener("click", handleNavClick);
