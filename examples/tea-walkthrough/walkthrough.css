@@ -423,14 +423,14 @@ pre code {
 
 @media (max-width: 1024px) {
   .two-column {
-    flex-direction: column !important;
+    flex-direction: column;
   }
 
-  .prose-column,
-  .demo-column {
-    width: 100% !important;
-    max-height: none !important;
-    overflow-y: visible !important;
+  .two-column > .prose-column,
+  .two-column > .demo-column {
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
   }
 
   pre {
