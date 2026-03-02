@@ -5,6 +5,7 @@
 [GitHub](https://github.com/roobie/spriggan) | [Live Demo](https://roobie.github.io/spriggan)
 
 ```html
+<div id="app"></div>
 <script type="module">
   import createSpriggan, { html } from './src/spriggan.js';
 
@@ -149,7 +150,12 @@ See dom effect tests in `__tests__/spriggan-dom.test.js` and `examples/component
 
 ```javascript
 subscriptions: (dispatch) => {
-  const onKey = (e) => { if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); dispatch({ type: 'Save' }); } };
+  const onKey = (e) => {
+    if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      dispatch({ type: 'Save' });
+    }
+  };
   document.addEventListener('keydown', onKey);
   return () => document.removeEventListener('keydown', onKey);
 }
@@ -159,7 +165,7 @@ subscriptions: (dispatch) => {
 
 ```javascript
 function Button({ text, msg }) {
-  return html`<button data-msg='${JSON.stringify(msg)}'>${text}</button>`;
+  return html`<button data-msg=${msg}>${text}</button>`;
 }
 
 function view(state) {
@@ -210,7 +216,7 @@ If you plan to maintain a published package, consider adding a build step and CI
 
 ---
 
-## Roadmap (suggested)
+## Roadmap (potential)
 
 - Optional build output and published package
 - TypeScript declaration files (.d.ts) for consumers
