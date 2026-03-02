@@ -28,6 +28,8 @@ export function html(strings, ...values) {
     const value = values[i] ?? "";
 
     if (Array.isArray(value)) {
+      // special case for embedding "components"
+      // if (typeof value[value.length-1] === 'function')
       result += value.join("");
     } else if (value == null || value === false) {
       result += "";
@@ -78,7 +80,7 @@ export default function createSpriggan() {
 
   /**
    * Initialize a Spriggan application
-   * @param {string} selector - CSS selector for root element
+   * @param {string | HTMLElement} selector - CSS selector for root element
    * @param {{
    *   init: unknown | (() => unknown),
    *   update: (state: unknown, msg: Message) => unknown,
@@ -105,7 +107,10 @@ export default function createSpriggan() {
       throw new Error("Spriggan: init, update, and view are required");
     }
 
-    const el = document.querySelector(selector);
+    const el =
+      selector instanceof HTMLElement
+        ? selector
+        : document.querySelector(selector);
     if (!el) {
       throw new Error(`Spriggan: element "${selector}" not found`);
     }

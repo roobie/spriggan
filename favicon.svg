@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"
+    aria-hidden="true">
+    <!-- Clean, stylistic Y junction in blue (#0084FF).
+         Two prongs point southwest and southeast; no CSS fuzz or color swaps. -->
+    <g fill="none" stroke="#0084FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Vertical stem -->
+        <path d="M64 18 L64 60" />
+        <!-- Left prong (southwest) -->
+        <path d="M64 60 L28 106" />
+        <!-- Right prong (southeast) -->
+        <path d="M64 60 L100 106" />
+    </g>
+</svg>
