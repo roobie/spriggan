@@ -10,11 +10,16 @@
 
   const { app } = createSpriggan();
 
-  app('#app', {
+  const Msg = { Inc: 'Inc' };
+
+  const appInstance = app('#app', {
     init: { count: 0 },
-    update: (state, msg) => (msg.type === 'Inc' ? { count: state.count + 1 } : state),
-    view: (state) => html`<div><h1>${state.count}</h1><button data-msg='{"type":"Inc"}'>+</button></div>`,
+    update: (state, msg) => (msg.type === Msg.Inc ? { count: state.count + 1 } : state),
+    view: (state) => html`<div><h1>${state.count}</h1><button data-msg=${{type: Msg.Inc}}>+</button></div>`,
   });
+
+  // Programmatic dispatch (use the same Msg enum)
+  // appInstance.dispatch({ type: Msg.Inc });
 </script>
 ```
 
