@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `jsr publish --dry-run` completes without type errors or missing-types warnings
   4. A TypeScript consumer importing `@bjro/spriggan` gets typed completions (not `any`) because the `exports` map lists `"types"` before `"default"`
   5. `jsr.json` exists at repo root with `name`, `version`, and `exports` fields populated
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 01-01-PLAN.md — Type declarations: tsconfig.build.json, tsc-vs-handwritten comparison, @ts-self-types directive
 - [ ] 01-02-PLAN.md — Package metadata: package.json fields, jsr.json creation, dry-run verification
@@ -63,6 +63,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Package Configuration | 0/2 | Planning complete | - |
+| 1. Package Configuration | 1/2 | In Progress|  |
 | 2. Publish Pipeline | 0/TBD | Not started | - |
 | 3. Registry Activation | 0/TBD | Not started | - |

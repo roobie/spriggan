@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-21T18:07:59.948Z"
-last_activity: 2026-03-21 — Roadmap created
+status: unknown
+stopped_at: Completed 01-package-configuration-01-PLAN.md
+last_updated: "2026-03-21T18:43:23.979Z"
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Consumers can install @bjro/spriggan from npm and JSR with working types, published automatically from CI on version tag push.
-**Current focus:** Phase 1 — Package Configuration
+**Current focus:** Phase 01 — Package Configuration
 
 ## Current Position
 
-Phase: 1 of 3 (Package Configuration)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-21 — Roadmap created
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 01 (Package Configuration) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -52,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-package-configuration P01 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -65,6 +60,9 @@ Recent decisions affecting current work:
 - Tag-triggered publish (`v*` tag) — manual version bump before tagging
 - Use `npm publish` (not `bun publish`) in CI to avoid `NPM_CONFIG_TOKEN` confusion
 - Separate `tsconfig.build.json` — never touch base `tsconfig.json`'s `noEmit: true`
+- [Phase 01-package-configuration]: TYPE-01: Handwritten src/spriggan.d.ts retained as authoritative declarations; tsc-emitted output loses all generics
+- [Phase 01-package-configuration]: tsconfig.build.json uses include:[src/spriggan.js] to exclude examples/ type errors that would abort emit
+- [Phase 01-package-configuration]: @ts-self-types in src/spriggan.js points to ./spriggan.d.ts; Plan 02 exports.types must point to src/spriggan.d.ts
 
 ### Pending Todos
 
@@ -77,6 +75,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T18:07:59.944Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-package-configuration/01-CONTEXT.md
+Last session: 2026-03-21T18:43:23.952Z
+Stopped at: Completed 01-package-configuration-01-PLAN.md
+Resume file: None

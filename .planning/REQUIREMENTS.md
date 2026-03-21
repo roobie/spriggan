@@ -18,9 +18,9 @@ Requirements for initial publish milestone. Each maps to roadmap phases.
 
 ### Type Declarations
 
-- [ ] **TYPE-01**: src/spriggan.d.ts is complete and matches the public API surface of src/spriggan.js
-- [ ] **TYPE-02**: tsconfig.build.json created for declaration-only emit (separate from noEmit check config)
-- [ ] **TYPE-03**: @ts-self-types directive added to top of src/spriggan.js for JSR type resolution
+- [x] **TYPE-01**: src/spriggan.d.ts is complete and matches the public API surface of src/spriggan.js
+- [x] **TYPE-02**: tsconfig.build.json created for declaration-only emit (separate from noEmit check config)
+- [x] **TYPE-03**: @ts-self-types directive added to top of src/spriggan.js for JSR type resolution
 
 ### Publishing Pipeline
 
@@ -67,9 +67,9 @@ Deferred to after first successful publish.
 | PKG-04 | Phase 1 | Pending |
 | PKG-05 | Phase 1 | Pending |
 | PKG-06 | Phase 1 | Pending |
-| TYPE-01 | Phase 1 | Pending |
-| TYPE-02 | Phase 1 | Pending |
-| TYPE-03 | Phase 1 | Pending |
+| TYPE-01 | Phase 1 | Complete |
+| TYPE-02 | Phase 1 | Complete |
+| TYPE-03 | Phase 1 | Complete |
 | CICD-01 | Phase 2 | Pending |
 | CICD-02 | Phase 2 | Pending |
 | CICD-03 | Phase 2 | Pending |
