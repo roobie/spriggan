@@ -53,6 +53,12 @@ All metadata and type declaration files that make @bjro/spriggan installable wit
 - `.planning/research/FEATURES.md` — Table stakes fields, exports map structure, @ts-self-types directive
 - `.planning/research/PITFALLS.md` — noEmit conflict, scoped package access, JSR publish.include gotcha
 
+### Reference implementation (user's own project)
+- `~/devel/slog/package.json` — Proven @bjro scoped package: exports map, files array, publishConfig pattern
+- `~/devel/slog/jsr.json` — Working jsr.json: exports, publish.include (includes jsr.json itself), publish.exclude for tests
+- `~/devel/slog/.github/workflows/publish.yml` — Working publish workflow: 3 test gates, npm with NPM_TOKEN + --provenance, JSR with deno publish + OIDC
+- **Key difference:** slog ships TypeScript source directly; Spriggan ships JS + .d.ts — exports map needs `types` condition
+
 ### Existing code
 - `src/spriggan.js` — Source file to be published (single file, ~750 lines)
 - `src/spriggan.d.ts` — Handwritten type declarations (252 lines) to evaluate against tsc output
