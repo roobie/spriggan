@@ -61,27 +61,27 @@ Deferred to after first successful publish.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PKG-01 | — | Pending |
-| PKG-02 | — | Pending |
-| PKG-03 | — | Pending |
-| PKG-04 | — | Pending |
-| PKG-05 | — | Pending |
-| PKG-06 | — | Pending |
-| TYPE-01 | — | Pending |
-| TYPE-02 | — | Pending |
-| TYPE-03 | — | Pending |
-| CICD-01 | — | Pending |
-| CICD-02 | — | Pending |
-| CICD-03 | — | Pending |
-| CICD-04 | — | Pending |
-| CICD-05 | — | Pending |
-| CICD-06 | — | Pending |
+| PKG-01 | Phase 1 | Pending |
+| PKG-02 | Phase 1 | Pending |
+| PKG-03 | Phase 1 | Pending |
+| PKG-04 | Phase 1 | Pending |
+| PKG-05 | Phase 1 | Pending |
+| PKG-06 | Phase 1 | Pending |
+| TYPE-01 | Phase 1 | Pending |
+| TYPE-02 | Phase 1 | Pending |
+| TYPE-03 | Phase 1 | Pending |
+| CICD-01 | Phase 2 | Pending |
+| CICD-02 | Phase 2 | Pending |
+| CICD-03 | Phase 2 | Pending |
+| CICD-04 | Phase 2 | Pending |
+| CICD-05 | Phase 2 | Pending |
+| CICD-06 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15
+- Mapped to phases: 15
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 after roadmap creation*
