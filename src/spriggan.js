@@ -1,3 +1,4 @@
+/* @ts-self-types="./spriggan.d.ts" */
 /**
  * Spriggan - A minimal TEA-inspired framework
  * No build tools, pure functions, LLM-friendly
