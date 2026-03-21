@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Package Configuration** - All metadata and type declaration files that make the package installable with correct types (completed 2026-03-21)
 - [x] **Phase 2: Publish Pipeline** - GitHub Actions workflow that gates on tests/lint and publishes to both registries on version tag push (completed 2026-03-21)
-- [ ] **Phase 3: Registry Activation** - Manual OIDC linking on npmjs.com and jsr.io, first publish verification
+- [x] **Phase 3: Registry Activation** - Manual OIDC linking on npmjs.com and jsr.io, first publish verification (completed 2026-03-21)
 
 ## Phase Details
 
@@ -67,4 +67,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Package Configuration | 2/2 | Complete   | 2026-03-21 |
 | 2. Publish Pipeline | 1/1 | Complete   | 2026-03-21 |
-| 3. Registry Activation | 0/TBD | Not started | - |
+| 3. Registry Activation | 0/TBD | Complete    | 2026-03-21 |
