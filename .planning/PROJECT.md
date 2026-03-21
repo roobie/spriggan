@@ -25,12 +25,13 @@ Ship Spriggan as a proper package on npm and JSR so consumers can `npm install @
 - ✓ Package metadata (@bjro/spriggan@1.0.0, exports, files, publishConfig) — Phase 1
 - ✓ TypeScript declarations (handwritten src/spriggan.d.ts, @ts-self-types) — Phase 1
 - ✓ JSR module configuration (jsr.json with exports and publish.include) — Phase 1
+- ✓ GitHub Actions publish workflow (tag-triggered, gate + parallel npm/JSR) — Phase 2
+- ✓ Tests and lint as gate before publish (mise run check + version consistency) — Phase 2
 
 ### Active
 
-- [ ] GitHub Actions workflow to publish to npm on version tag push
-- [ ] GitHub Actions workflow to publish to JSR on version tag push
-- [ ] Tests and lint pass as gate before publish
+(None — all requirements delivered. Phase 3 is manual registry activation.)
+
 
 ### Out of Scope
 
@@ -67,4 +68,4 @@ Ship Spriggan as a proper package on npm and JSR so consumers can `npm install @
 | Handwritten .d.ts over tsc-emitted | tsc discards all generics from JSDoc; handwritten preserves full type safety | ✓ Good |
 
 ---
-*Last updated: 2026-03-21 after Phase 1 completion*
+*Last updated: 2026-03-21 after Phase 2 completion*
