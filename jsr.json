@@ -1,6 +1,23 @@
 {
   "name": "@bjro/spriggan",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "keywords": [
+    "tea",
+    "elm-architecture",
+    "model-view-update",
+    "unidirectional",
+    "state-management",
+    "frontend",
+    "framework",
+    "no-build",
+    "pure-functions",
+    "functional",
+    "declarative",
+    "lightweight",
+    "minimal",
+    "browser",
+    "vanilla-js"
+  ],
   "exports": "./src/spriggan.js",
   "publish": {
     "include": [

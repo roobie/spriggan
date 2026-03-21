@@ -1,6 +1,6 @@
 {
   "name": "@bjro/spriggan",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A minimal TEA (The Elm Architecture) framework for the browser — no build tools, pure functions",
   "type": "module",
   "exports": {
@@ -18,11 +18,19 @@
   "keywords": [
     "tea",
     "elm-architecture",
+    "model-view-update",
     "unidirectional",
+    "state-management",
     "frontend",
+    "framework",
     "no-build",
-    "mvc",
-    "browser"
+    "pure-functions",
+    "functional",
+    "declarative",
+    "lightweight",
+    "minimal",
+    "browser",
+    "vanilla-js"
   ],
   "engines": {
     "node": ">=18"
