@@ -22,12 +22,12 @@ Ship Spriggan as a proper package on npm and JSR so consumers can `npm install @
 - ✓ Vitest test suite — existing
 - ✓ Biome lint/format — existing
 - ✓ CI running checks on push/PR — existing
+- ✓ Package metadata (@bjro/spriggan@1.0.0, exports, files, publishConfig) — Phase 1
+- ✓ TypeScript declarations (handwritten src/spriggan.d.ts, @ts-self-types) — Phase 1
+- ✓ JSR module configuration (jsr.json with exports and publish.include) — Phase 1
 
 ### Active
 
-- [ ] Package metadata (name, version, exports, files) in package.json
-- [ ] TypeScript declaration generation (.d.ts) for consumers
-- [ ] JSR module configuration (jsr.json or deno.json)
 - [ ] GitHub Actions workflow to publish to npm on version tag push
 - [ ] GitHub Actions workflow to publish to JSR on version tag push
 - [ ] Tests and lint pass as gate before publish
@@ -64,6 +64,7 @@ Ship Spriggan as a proper package on npm and JSR so consumers can `npm install @
 | ESM only, no UMD | Simplicity, modern consumers | — Pending |
 | Tag-triggered publish | Simple, explicit version control | — Pending |
 | Bun in CI | Already used for dev tooling via mise | — Pending |
+| Handwritten .d.ts over tsc-emitted | tsc discards all generics from JSDoc; handwritten preserves full type safety | ✓ Good |
 
 ---
-*Last updated: 2026-03-21 after initialization*
+*Last updated: 2026-03-21 after Phase 1 completion*
