@@ -1,5 +1,46 @@
 {
+  "name": "@bjro/spriggan",
+  "version": "1.0.0",
+  "description": "A minimal TEA (The Elm Architecture) framework for the browser — no build tools, pure functions",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/spriggan.d.ts",
+      "default": "./src/spriggan.js"
+    }
+  },
+  "files": [
+    "src/spriggan.js",
+    "src/spriggan.d.ts",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "tea",
+    "elm-architecture",
+    "unidirectional",
+    "frontend",
+    "no-build",
+    "mvc",
+    "browser"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "bjro",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roobie/spriggan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/roobie/spriggan/issues"
+  },
+  "homepage": "https://github.com/roobie/spriggan#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "check": "mise run check"
   },
