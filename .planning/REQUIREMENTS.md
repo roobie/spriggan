@@ -9,12 +9,12 @@ Requirements for initial publish milestone. Each maps to roadmap phases.
 
 ### Package Metadata
 
-- [ ] **PKG-01**: package.json has name (@bjro/spriggan), version, description, and repository/homepage/bugs fields
-- [ ] **PKG-02**: package.json has exports map with types and default conditions
-- [ ] **PKG-03**: package.json has files array limiting tarball to source + declarations
-- [ ] **PKG-04**: package.json has publishConfig.access set to "public"
-- [ ] **PKG-05**: package.json has keywords, sideEffects: false, and engines fields
-- [ ] **PKG-06**: jsr.json created with name, version, and exports pointing to source
+- [x] **PKG-01**: package.json has name (@bjro/spriggan), version, description, and repository/homepage/bugs fields
+- [x] **PKG-02**: package.json has exports map with types and default conditions
+- [x] **PKG-03**: package.json has files array limiting tarball to source + declarations
+- [x] **PKG-04**: package.json has publishConfig.access set to "public"
+- [x] **PKG-05**: package.json has keywords, sideEffects: false, and engines fields
+- [x] **PKG-06**: jsr.json created with name, version, and exports pointing to source
 
 ### Type Declarations
 
@@ -61,12 +61,12 @@ Deferred to after first successful publish.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PKG-01 | Phase 1 | Pending |
-| PKG-02 | Phase 1 | Pending |
-| PKG-03 | Phase 1 | Pending |
-| PKG-04 | Phase 1 | Pending |
-| PKG-05 | Phase 1 | Pending |
-| PKG-06 | Phase 1 | Pending |
+| PKG-01 | Phase 1 | Complete |
+| PKG-02 | Phase 1 | Complete |
+| PKG-03 | Phase 1 | Complete |
+| PKG-04 | Phase 1 | Complete |
+| PKG-05 | Phase 1 | Complete |
+| PKG-06 | Phase 1 | Complete |
 | TYPE-01 | Phase 1 | Complete |
 | TYPE-02 | Phase 1 | Complete |
 | TYPE-03 | Phase 1 | Complete |

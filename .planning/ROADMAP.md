@@ -12,7 +12,7 @@ Spriggan is already built and tested. This milestone ships it as a proper packag
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Package Configuration** - All metadata and type declaration files that make the package installable with correct types
+- [x] **Phase 1: Package Configuration** - All metadata and type declaration files that make the package installable with correct types (completed 2026-03-21)
 - [ ] **Phase 2: Publish Pipeline** - GitHub Actions workflow that gates on tests/lint and publishes to both registries on version tag push
 - [ ] **Phase 3: Registry Activation** - Manual OIDC linking on npmjs.com and jsr.io, first publish verification
 
@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `jsr publish --dry-run` completes without type errors or missing-types warnings
   4. A TypeScript consumer importing `@bjro/spriggan` gets typed completions (not `any`) because the `exports` map lists `"types"` before `"default"`
   5. `jsr.json` exists at repo root with `name`, `version`, and `exports` fields populated
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 01-01-PLAN.md — Type declarations: tsconfig.build.json, tsc-vs-handwritten comparison, @ts-self-types directive
 - [ ] 01-02-PLAN.md — Package metadata: package.json fields, jsr.json creation, dry-run verification
@@ -63,6 +63,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Package Configuration | 1/2 | In Progress|  |
+| 1. Package Configuration | 2/2 | Complete   | 2026-03-21 |
 | 2. Publish Pipeline | 0/TBD | Not started | - |
 | 3. Registry Activation | 0/TBD | Not started | - |

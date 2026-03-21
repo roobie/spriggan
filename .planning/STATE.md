@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-package-configuration-01-PLAN.md
-last_updated: "2026-03-21T18:43:23.979Z"
+stopped_at: Completed 01-package-configuration-02-PLAN.md
+last_updated: "2026-03-21T18:48:00Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 01 (Package Configuration) — EXECUTING
-Plan: 1 of 2
+Phase: 01 (Package Configuration) — COMPLETE
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -46,7 +46,8 @@ Plan: 1 of 2
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 01-package-configuration P01 | 5 | 2 tasks | 3 files |
+| Phase 01-package-configuration P01 | 5min | 2 tasks | 3 files |
+| Phase 01-package-configuration P02 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - [Phase 01-package-configuration]: TYPE-01: Handwritten src/spriggan.d.ts retained as authoritative declarations; tsc-emitted output loses all generics
 - [Phase 01-package-configuration]: tsconfig.build.json uses include:[src/spriggan.js] to exclude examples/ type errors that would abort emit
 - [Phase 01-package-configuration]: @ts-self-types in src/spriggan.js points to ./spriggan.d.ts; Plan 02 exports.types must point to src/spriggan.d.ts
+- [Phase 01-package-configuration P02]: exports['.'].types=./src/spriggan.d.ts (handwritten); 'default' condition (not 'import') for .js exports
+- [Phase 01-package-configuration P02]: jsr.json exports is bare string ./src/spriggan.js; JSR resolves types via @ts-self-types directive
+- [Phase 01-package-configuration P02]: jsr publish --dry-run requires --allow-dirty for local runs; CI checkout is clean so flag not needed in CI
 
 ### Pending Todos
 
@@ -75,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T18:43:23.952Z
-Stopped at: Completed 01-package-configuration-01-PLAN.md
+Last session: 2026-03-21T18:48:00Z
+Stopped at: Completed 01-package-configuration-02-PLAN.md
 Resume file: None
