@@ -1,0 +1,14 @@
+{
+  "name": "@bjro/spriggan",
+  "version": "1.0.0",
+  "exports": "./src/spriggan.js",
+  "publish": {
+    "include": [
+      "jsr.json",
+      "src/spriggan.js",
+      "src/spriggan.d.ts",
+      "README.md",
+      "LICENSE"
+    ]
+  }
+}
