@@ -24,12 +24,12 @@ Requirements for initial publish milestone. Each maps to roadmap phases.
 
 ### Publishing Pipeline
 
-- [ ] **CICD-01**: GitHub Actions publish workflow triggers on v* tag push
-- [ ] **CICD-02**: Publish workflow runs tests and lint as a gate before any publish job
-- [ ] **CICD-03**: npm publish job uses OIDC trusted publishing (no stored secrets)
-- [ ] **CICD-04**: npm publish includes --provenance flag for supply-chain attestation
-- [ ] **CICD-05**: JSR publish job uses OIDC (npx jsr publish with id-token: write)
-- [ ] **CICD-06**: npm and JSR publish jobs run in parallel after gate passes
+- [x] **CICD-01**: GitHub Actions publish workflow triggers on v* tag push
+- [x] **CICD-02**: Publish workflow runs tests and lint as a gate before any publish job
+- [x] **CICD-03**: npm publish job uses OIDC trusted publishing (no stored secrets)
+- [x] **CICD-04**: npm publish includes --provenance flag for supply-chain attestation
+- [x] **CICD-05**: JSR publish job uses OIDC (npx jsr publish with id-token: write)
+- [x] **CICD-06**: npm and JSR publish jobs run in parallel after gate passes
 
 ## v2 Requirements
 
@@ -70,12 +70,12 @@ Deferred to after first successful publish.
 | TYPE-01 | Phase 1 | Complete |
 | TYPE-02 | Phase 1 | Complete |
 | TYPE-03 | Phase 1 | Complete |
-| CICD-01 | Phase 2 | Pending |
-| CICD-02 | Phase 2 | Pending |
-| CICD-03 | Phase 2 | Pending |
-| CICD-04 | Phase 2 | Pending |
-| CICD-05 | Phase 2 | Pending |
-| CICD-06 | Phase 2 | Pending |
+| CICD-01 | Phase 2 | Complete |
+| CICD-02 | Phase 2 | Complete |
+| CICD-03 | Phase 2 | Complete |
+| CICD-04 | Phase 2 | Complete |
+| CICD-05 | Phase 2 | Complete |
+| CICD-06 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 15 total

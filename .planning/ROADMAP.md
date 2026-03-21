@@ -13,7 +13,7 @@ Spriggan is already built and tested. This milestone ships it as a proper packag
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Package Configuration** - All metadata and type declaration files that make the package installable with correct types (completed 2026-03-21)
-- [ ] **Phase 2: Publish Pipeline** - GitHub Actions workflow that gates on tests/lint and publishes to both registries on version tag push
+- [x] **Phase 2: Publish Pipeline** - GitHub Actions workflow that gates on tests/lint and publishes to both registries on version tag push (completed 2026-03-21)
 - [ ] **Phase 3: Registry Activation** - Manual OIDC linking on npmjs.com and jsr.io, first publish verification
 
 ## Phase Details
@@ -43,7 +43,7 @@ Plans:
   3. The workflow includes a version-consistency step that exits non-zero if the git tag does not match `package.json` version
   4. npm publish uses `--provenance` flag and OIDC (`id-token: write`), with no `NODE_AUTH_TOKEN` or stored secrets
   5. JSR publish uses `npx jsr publish` with `id-token: write`, no stored token
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 02-01-PLAN.md — Create publish.yml with gate + parallel npm/jsr jobs, structural verification and dry-runs
 
@@ -66,5 +66,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Package Configuration | 2/2 | Complete   | 2026-03-21 |
-| 2. Publish Pipeline | 0/1 | In progress | - |
+| 2. Publish Pipeline | 1/1 | Complete   | 2026-03-21 |
 | 3. Registry Activation | 0/TBD | Not started | - |

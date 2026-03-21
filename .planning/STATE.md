@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-21T19:34:39.995Z"
+stopped_at: Completed 02-publish-pipeline 02-01-PLAN.md
+last_updated: "2026-03-21T20:04:19.999Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Consumers can install @bjro/spriggan from npm and JSR with working types, published automatically from CI on version tag push.
-**Current focus:** Phase 01 — Package Configuration
+**Current focus:** Phase 02 — Publish Pipeline
 
 ## Current Position
 
-Phase: 01 (Package Configuration) — COMPLETE
-Plan: 2 of 2
+Phase: 02 (Publish Pipeline) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: 2 of 2
 *Updated after each plan completion*
 | Phase 01-package-configuration P01 | 5min | 2 tasks | 3 files |
 | Phase 01-package-configuration P02 | 3min | 2 tasks | 2 files |
+| Phase 02-publish-pipeline P01 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase 01-package-configuration P02]: exports['.'].types=./src/spriggan.d.ts (handwritten); 'default' condition (not 'import') for .js exports
 - [Phase 01-package-configuration P02]: jsr.json exports is bare string ./src/spriggan.js; JSR resolves types via @ts-self-types directive
 - [Phase 01-package-configuration P02]: jsr publish --dry-run requires --allow-dirty for local runs; CI checkout is clean so flag not needed in CI
+- [Phase 02-publish-pipeline]: Version check in gate job (not per publish job) blocks both npm and jsr if tag mismatches — prevents partial publish
+- [Phase 02-publish-pipeline]: No npm ci in jsr job: Deno reads jsr.json manifest directly, no node_modules needed
+- [Phase 02-publish-pipeline]: deno publish dry-run confirms no --allow-slow-types needed: JS+@ts-self-types passes clean
 
 ### Pending Todos
 
@@ -79,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:34:39.971Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-publish-pipeline/02-CONTEXT.md
+Last session: 2026-03-21T20:04:19.997Z
+Stopped at: Completed 02-publish-pipeline 02-01-PLAN.md
+Resume file: None
