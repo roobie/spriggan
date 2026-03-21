@@ -43,7 +43,9 @@ Plans:
   3. The workflow includes a version-consistency step that exits non-zero if the git tag does not match `package.json` version
   4. npm publish uses `--provenance` flag and OIDC (`id-token: write`), with no `NODE_AUTH_TOKEN` or stored secrets
   5. JSR publish uses `npx jsr publish` with `id-token: write`, no stored token
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 02-01-PLAN.md — Create publish.yml with gate + parallel npm/jsr jobs, structural verification and dry-runs
 
 ### Phase 3: Registry Activation
 **Goal**: OIDC trusted publishing is configured on both registries and the first real publish completes successfully — `@bjro/spriggan` is live on npmjs.com and jsr.io
@@ -59,10 +61,10 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Package Configuration | 2/2 | Complete   | 2026-03-21 |
-| 2. Publish Pipeline | 0/TBD | Not started | - |
+| 2. Publish Pipeline | 0/1 | In progress | - |
 | 3. Registry Activation | 0/TBD | Not started | - |
